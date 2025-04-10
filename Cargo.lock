@@ -159,7 +159,7 @@ dependencies = [
  "nvml-wrapper",
  "objc2",
  "objc2-metal",
- "sysinfo 0.33.1",
+ "sysinfo 0.34.2",
  "thiserror 2.0.12",
  "tracing",
  "tracing-appender",
@@ -220,7 +220,6 @@ dependencies = [
  "serde",
  "serde_json",
  "serial_test",
- "sysinfo 0.33.1",
  "thiserror 2.0.12",
  "tokio",
  "tracing",
@@ -1272,16 +1271,14 @@ dependencies = [
 
 [[package]]
 name = "dagrs"
-version = "0.4.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd84a736ffb5752612e39db805a3073a001011bda13dd7914f606f32b1fbb669"
+checksum = "b882d44427b364521d88290e26fdb4effc0f0dccf98e8e6f65d3ad29688c0b30"
 dependencies = [
  "async-trait",
  "dagrs-derive",
- "env_logger",
  "futures",
  "log",
- "proc-macro2",
  "tokio",
 ]
 
@@ -3982,6 +3979,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "objc2-core-foundation"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "daeaf60f25471d26948a1c2f840e3f7d86f4109e3af4e8e4b5cd70c39690d925"
+dependencies = [
+ "bitflags 2.9.0",
+]
+
+[[package]]
 name = "objc2-encode"
 version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4074,7 +4080,7 @@ dependencies = [
 [[package]]
 name = "ort"
 version = "2.0.0-rc.9"
-source = "git+https://github.com/pykeio/ort.git#6e44003e3455ab4fad8832c9c7964dc756e5a406"
+source = "git+https://github.com/pykeio/ort.git#67dde364e9b15c0f810bce2c4226abc11e4a4fec"
 dependencies = [
  "ndarray",
  "ort-sys 2.0.0-rc.9 (git+https://github.com/pykeio/ort.git)",
@@ -4100,7 +4106,7 @@ dependencies = [
 [[package]]
 name = "ort-sys"
 version = "2.0.0-rc.9"
-source = "git+https://github.com/pykeio/ort.git#6e44003e3455ab4fad8832c9c7964dc756e5a406"
+source = "git+https://github.com/pykeio/ort.git#67dde364e9b15c0f810bce2c4226abc11e4a4fec"
 dependencies = [
  "pkg-config",
 ]
@@ -5873,14 +5879,14 @@ dependencies = [
 
 [[package]]
 name = "sysinfo"
-version = "0.33.1"
+version = "0.34.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fc858248ea01b66f19d8e8a6d55f41deaf91e9d495246fd01368d99935c6c01"
+checksum = "a4b93974b3d3aeaa036504b8eefd4c039dced109171c1ae973f1dc63b2c7e4b2"
 dependencies = [
- "core-foundation-sys",
  "libc",
  "memchr",
  "ntapi",
+ "objc2-core-foundation",
  "windows 0.57.0",
 ]
 
