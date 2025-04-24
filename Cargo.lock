@@ -85,10 +85,11 @@ dependencies = [
  "alith-models",
  "alith-prompt",
  "alith-store",
+ "alith-tee",
  "alith-tools",
  "anyhow",
  "async-trait",
- "rand 0.9.0",
+ "rand 0.9.1",
  "reqwest 0.12.15",
  "schemars",
  "serde",
@@ -189,7 +190,7 @@ dependencies = [
  "mistralrs",
  "ort 2.0.0-rc.9 (git+https://github.com/pykeio/ort.git)",
  "pythonize",
- "rand 0.9.0",
+ "rand 0.9.1",
  "reqwest 0.12.15",
  "serde",
  "serde_json",
@@ -327,6 +328,19 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+]
+
+[[package]]
+name = "alith-tee"
+version = "0.5.1"
+dependencies = [
+ "alith-core",
+ "async-trait",
+ "reqwest 0.12.15",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "url",
 ]
 
 [[package]]
@@ -830,7 +844,7 @@ dependencies = [
  "memmap2",
  "num-traits",
  "num_cpus",
- "rand 0.9.0",
+ "rand 0.9.1",
  "rand_distr",
  "rayon",
  "safetensors",
@@ -979,9 +993,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.36"
+version = "4.5.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2df961d8c8a0d08aa9945718ccf584145eee3f3aa06cddbeac12933781102e04"
+checksum = "eccb054f56cbd38340b380d4a8e69ef1f02f1af43db2f0cc817a4774d80ae071"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -989,9 +1003,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.36"
+version = "4.5.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "132dbda40fb6753878316a489d5a1242a8ef2f0d9e47ba01c951ea8aa7d013a5"
+checksum = "efd9466fac8543255d3b1fcad4762c5e116ffe808c8a3043d4263cd4fd4862a2"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1271,9 +1285,9 @@ dependencies = [
 
 [[package]]
 name = "dagrs"
-version = "0.4.3"
+version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b882d44427b364521d88290e26fdb4effc0f0dccf98e8e6f65d3ad29688c0b30"
+checksum = "c8847e86ea745e9194b95e4d294546370b6f002dd7548a084b589492d3ce3930"
 dependencies = [
  "async-trait",
  "dagrs-derive",
@@ -1284,9 +1298,9 @@ dependencies = [
 
 [[package]]
 name = "dagrs-derive"
-version = "0.4.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9055323982dc983da2b7da8a7ce421eae21d914ad6072a8a60d30836c97ebb55"
+checksum = "351bda7042e6c437e5b18c4638de6206ae7913434c03dad0ac57c4f0841500f9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1773,7 +1787,7 @@ checksum = "dee36245af1dccf978103fcd393582806db2a1d0bcd2f38c663cdbb4a363a01c"
 dependencies = [
  "half",
  "num-traits",
- "rand 0.9.0",
+ "rand 0.9.1",
  "rand_distr",
 ]
 
@@ -2163,7 +2177,7 @@ dependencies = [
  "cfg-if",
  "crunchy",
  "num-traits",
- "rand 0.9.0",
+ "rand 0.9.1",
  "rand_distr",
 ]
 
@@ -3192,7 +3206,7 @@ dependencies = [
  "md-5",
  "nom 8.0.0",
  "nom_locate",
- "rand 0.9.0",
+ "rand 0.9.1",
  "rangemap",
  "rayon",
  "sha2",
@@ -3545,7 +3559,7 @@ dependencies = [
  "image",
  "indexmap 2.9.0",
  "mistralrs-core",
- "rand 0.9.0",
+ "rand 0.9.1",
  "reqwest 0.12.15",
  "serde",
  "serde_json",
@@ -3592,7 +3606,7 @@ dependencies = [
  "mistralrs-vision",
  "once_cell",
  "radix_trie",
- "rand 0.9.0",
+ "rand 0.9.1",
  "rand_isaac",
  "rayon",
  "regex",
@@ -3878,17 +3892,6 @@ checksum = "51d515d32fb182ee37cda2ccdcb92950d6a3c2893aa280e540671c2cd0f3b1d9"
 
 [[package]]
 name = "num-derive"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "876a53fff98e03a936a674b29568b0e605f06b29372c2489ff4de23f1949743d"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "num-derive"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed3955f1a9c7c0c15e092f9c887db08b1fc683305fdf6eb6684f22555355e202"
@@ -4106,7 +4109,7 @@ dependencies = [
 [[package]]
 name = "ort"
 version = "2.0.0-rc.9"
-source = "git+https://github.com/pykeio/ort.git#a223a7ff502975433d2b453870293ab14ba07be3"
+source = "git+https://github.com/pykeio/ort.git#49a5cbf801a2bc0c10edb7388e4e4d01e6078390"
 dependencies = [
  "ndarray",
  "ort-sys 2.0.0-rc.9 (git+https://github.com/pykeio/ort.git)",
@@ -4132,7 +4135,7 @@ dependencies = [
 [[package]]
 name = "ort-sys"
 version = "2.0.0-rc.9"
-source = "git+https://github.com/pykeio/ort.git#a223a7ff502975433d2b453870293ab14ba07be3"
+source = "git+https://github.com/pykeio/ort.git#49a5cbf801a2bc0c10edb7388e4e4d01e6078390"
 dependencies = [
  "pkg-config",
 ]
@@ -4578,9 +4581,9 @@ dependencies = [
 
 [[package]]
 name = "qdrant-client"
-version = "1.13.0"
+version = "1.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b585625d1ef06478e97fe8d7170a3f32a1cba5dbf986ff136095a85a0ec3d91"
+checksum = "f7b17bc17a707188d378d8643af36c499b7a3c8ece72c9341d7eff4c1eb49a33"
 dependencies = [
  "anyhow",
  "derive_builder",
@@ -4640,7 +4643,7 @@ checksum = "b820744eb4dc9b57a3398183639c511b5a26d2ed702cedd3febaa1393caa22cc"
 dependencies = [
  "bytes",
  "getrandom 0.3.2",
- "rand 0.9.0",
+ "rand 0.9.1",
  "ring",
  "rustc-hash 2.1.1",
  "rustls 0.23.25",
@@ -4704,13 +4707,12 @@ dependencies = [
 
 [[package]]
 name = "rand"
-version = "0.9.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3779b94aeb87e8bd4e834cee3650289ee9e0d5677f976ecdb6d219e5f4f6cd94"
+checksum = "9fbfd9d094a40bf3ae768db9361049ace4c0e04a4fd6b359518bd7b73a73dd97"
 dependencies = [
  "rand_chacha 0.9.0",
  "rand_core 0.9.3",
- "zerocopy 0.8.23",
 ]
 
 [[package]]
@@ -4758,7 +4760,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a8615d50dcf34fa31f7ab52692afec947c4dd0ab803cc87cb3b0b4570ff7463"
 dependencies = [
  "num-traits",
- "rand 0.9.0",
+ "rand 0.9.1",
 ]
 
 [[package]]
@@ -4797,7 +4799,7 @@ dependencies = [
  "maybe-rayon",
  "new_debug_unreachable",
  "noop_proc_macro",
- "num-derive 0.4.2",
+ "num-derive",
  "num-traits",
  "once_cell",
  "paste",
@@ -5407,12 +5409,12 @@ dependencies = [
 
 [[package]]
 name = "sentencepiece"
-version = "0.11.2"
+version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ae716e54c860d65df824a5b606b464e8f2acfc4a7fe93b2a1f6b9a173d1fff5"
+checksum = "286451da14703923eeb9d5e9d7717a15cbf236c037923fb7a6ff911ca45f4124"
 dependencies = [
  "libc",
- "num-derive 0.3.3",
+ "num-derive",
  "num-traits",
  "prost 0.11.9",
  "prost-derive 0.11.9",
@@ -6298,9 +6300,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.14"
+version = "0.7.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b9590b93e6fcc1739458317cccd391ad3955e2bde8913edf6f95f9e65a8f034"
+checksum = "66a539a9ad6d5d281510d5bd368c973d636c02dbf8a67300bfb6b950696ad7df"
 dependencies = [
  "bytes",
  "futures-core",
