@@ -1,6 +1,6 @@
 {
   "name": "alith",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/0xLazAI/alith.git"
@@ -80,7 +80,7 @@
     "@qdrant/js-client-rest": "^1.13.0",
     "axios": "^1.8.1",
     "json-schema": "^0.4.0",
-    "zod": "^3.24.1",
+    "zod": "3.24.4",
     "zod-to-json-schema": "^3.24.1"
   }
 }

@@ -1,5 +1,6 @@
 pub use alith_client as client;
 pub use alith_core as core;
+pub use alith_data as data;
 pub use alith_devices as devices;
 pub use alith_inference as inference;
 pub use alith_interface as interface;
@@ -7,9 +8,10 @@ pub use alith_knowledge as knowledge;
 pub use alith_models as models;
 pub use alith_prompt as prompt;
 pub use alith_store as store;
+pub use alith_tee as tee;
 pub use alith_tools as tools;
 
-#[cfg(feature = "inference")]
+#[cfg(feature = "fastembed")]
 pub use core::llm::{
     ExecutionProviderDispatch, FastEmbeddingsModel, FastEmbeddingsModelName,
     FastEmbeddingsModelOptions,
@@ -60,6 +62,11 @@ pub use knowledge::{
     string::StringKnowledge,
     text::TextFileKnowledge,
 };
+#[cfg(feature = "milvus")]
+pub use store::milvus::*;
+#[cfg(feature = "pgvector")]
+pub use store::pgvector::*;
+#[cfg(feature = "qdrant")]
 pub use store::qdrant::*;
 pub use tools::search::{Search, SearchProvider, SearchResult, SearchResults, SearchTool};
 

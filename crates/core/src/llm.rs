@@ -6,24 +6,24 @@ use anyhow::Result;
 use async_trait::async_trait;
 use client::{Client, CompletionResponse};
 
-#[cfg(feature = "inference")]
+#[cfg(feature = "fastembed")]
 use fastembed::TextEmbedding;
-#[cfg(feature = "inference")]
+#[cfg(feature = "fastembed")]
 pub use fastembed::{
     EmbeddingModel as FastEmbeddingsModelName, ExecutionProviderDispatch,
     InitOptions as FastEmbeddingsModelOptions,
 };
-#[cfg(feature = "inference")]
+#[cfg(feature = "fastembed")]
 use std::sync::Arc;
 
 // OpenAI models
 
-pub const GPT_4_5: &str = "gpt-4.5";
+pub const GPT_3_5_TURBO: &str = "gpt-3.5-turbo";
 pub const GPT_4: &str = "gpt-4";
 pub const GPT_4_32K: &str = "gpt-4-32k";
 pub const GPT_4_TURBO: &str = "gpt-4-turbo";
-pub const GPT_3_5_TURBO: &str = "gpt-3.5-turbo";
-pub const GPT_4O_MINI: &str = "gpt-4o-mini";
+pub const GPT_4_1: &str = "gpt-4.1";
+pub const GPT_4_5: &str = "gpt-4.5";
 
 // Anthropic models
 
@@ -127,13 +127,13 @@ impl Embeddings for EmbeddingsModel {
     }
 }
 
-#[cfg(feature = "inference")]
+#[cfg(feature = "fastembed")]
 #[derive(Clone)]
 pub struct FastEmbeddingsModel {
     model: Arc<TextEmbedding>,
 }
 
-#[cfg(feature = "inference")]
+#[cfg(feature = "fastembed")]
 impl FastEmbeddingsModel {
     /// Try to generate a new TextEmbedding Instance.
     ///
@@ -158,7 +158,7 @@ impl FastEmbeddingsModel {
     }
 }
 
-#[cfg(feature = "inference")]
+#[cfg(feature = "fastembed")]
 #[async_trait]
 impl Embeddings for FastEmbeddingsModel {
     const MAX_DOCUMENTS: usize = 1024;

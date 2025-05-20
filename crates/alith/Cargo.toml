@@ -12,6 +12,7 @@ keywords = ["ai", "agent", "data", "model"]
 [dependencies]
 alith-core.workspace = true
 alith-knowledge.workspace = true
+alith-data.workspace = true
 alith-store.workspace = true
 alith-inference.workspace = true
 alith-tools.workspace = true
@@ -20,7 +21,7 @@ alith-models.workspace = true
 alith-interface.workspace = true
 alith-prompt.workspace = true
 alith-devices.workspace = true
-alith-tee = { workspace = true, optional = true }
+alith-tee.workspace = true
 
 async-trait.workspace = true
 tokio.workspace = true
@@ -29,11 +30,18 @@ anyhow.workspace = true
 schemars.workspace = true
 reqwest.workspace = true
 url.workspace = true
+rand.workspace = true
+rand_08.workspace = true
+hex.workspace = true
 
-rand = "0.9"
+sqlx = { workspace = true, optional = true }
 
 [features]
-inference = ["alith-core/inference"]
+# Default features
+default = []
+
+# Inference features
+fastembed = ["alith-core/fastembed"]
 ort = ["alith-inference/ort"]
 llamacpp = ["alith-inference/llamacpp"]
 mistralrs = ["alith-inference/mistralrs"]
@@ -41,7 +49,29 @@ python = ["alith-inference/python"]
 sglang = ["alith-inference/sglang"]
 trtllm = ["alith-inference/trtllm"]
 vllm = ["alith-inference/vllm"]
-tee = ["dep:alith-tee"]
+
+# Store features
+qdrant = ["alith-store/qdrant"]
+pgvector = ["alith-store/pgvector", "dep:sqlx"]
+milvus = ["alith-store/milvus"]
+chromadb = ["alith-store/chromadb"]
+
+# TEE fearures
+aws-tee = ["alith-tee/aws-tee"]
+azure-tee = ["alith-tee/azure-tee"]
+marlin = ["alith-tee/marlin"]
+phala = ["alith-tee/phala"]
+
+# Crypto features
+crypto = ["alith-data/crypto"]
+
+# Wallet features
+wallet = ["alith-data/wallet"]
+
+# Data Availability (DA)
+ipfs = ["alith-data/ipfs"]
+dropbox = ["alith-data/dropbox"]
+google-drive = ["alith-data/google-drive"]
 
 [[example]]
 name = "agent"
@@ -86,7 +116,20 @@ name = "agent_with_embeddings"
 name = "agent_with_rag"
 
 [[example]]
+name = "agent_with_pgvector"
+required-features = ["pgvector"]
+
+[[example]]
 name = "agent_with_qdrant"
+required-features = ["qdrant"]
+
+[[example]]
+name = "agent_with_milvus"
+required-features = ["milvus"]
+
+[[example]]
+name = "agent_with_chromadb"
+required-features = ["chromadb"]
 
 [[example]]
 name = "agent_with_cot"
@@ -109,6 +152,30 @@ required-features = ["ort"]
 [[example]]
 name = "agent_with_llamacpp_server"
 required-features = ["llamacpp"]
+
+[[example]]
+name = "agent_with_phala_tee"
+required-features = ["phala"]
+
+[[example]]
+name = "agent_with_marlin_tee"
+required-features = ["marlin"]
+
+[[example]]
+name = "agent_with_privacy_data"
+required-features = ["crypto", "marlin", "wallet"]
+
+[[example]]
+name = "agent_with_google_drive"
+required-features = ["google-drive"]
+
+[[example]]
+name = "agent_with_dropbox"
+required-features = ["dropbox"]
+
+[[example]]
+name = "agent_with_pinata_ipfs"
+required-features = ["ipfs"]
 
 [[example]]
 name = "hf_loader"
