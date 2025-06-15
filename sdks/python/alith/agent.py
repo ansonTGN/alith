@@ -1,9 +1,10 @@
 from dataclasses import dataclass, field
-from typing import List, Union, Callable, Optional
-from .tool import Tool, create_delegate_tool
-from .store import Store
+from typing import Callable, List, Optional, Union
+
 from .memory import Memory
-from ._alith import DelegateAgent as _DelegateAgent
+from .store import Store
+from .tool import Tool, create_delegate_tool
+from .types import Headers
 
 
 @dataclass
@@ -17,8 +18,11 @@ class Agent:
     mcp_config_path: Optional[str] = field(default_factory=str)
     store: Optional[Store] = None
     memory: Optional[Memory] = None
+    extra_headers: Optional[Headers] = None
 
     def prompt(self, prompt: str) -> str:
+        from ._alith import DelegateAgent as _DelegateAgent
+
         tools = [
             (
                 create_delegate_tool(tool)
@@ -34,6 +38,7 @@ class Agent:
             self.base_url,
             self.preamble,
             tools,
+            self.extra_headers or dict(),
             self.mcp_config_path,
         )
         if self.store:

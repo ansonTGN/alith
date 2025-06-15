@@ -5,5 +5,5 @@ export default {
   tee: "",
   da: "",
   decision: "",
-  inference: ""
+  inference: "",
 };

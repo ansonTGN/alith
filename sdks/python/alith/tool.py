@@ -1,11 +1,11 @@
-from typing import Callable
-from ._alith import DelegateTool as _DelegateTool
-from inspect import Parameter
-from pydantic import create_model, BaseModel, Field
-import json
 import ctypes
 import inspect
+import json
 import warnings
+from inspect import Parameter
+from typing import Callable
+
+from pydantic import BaseModel, Field, create_model
 
 warnings.filterwarnings(action="ignore", category=RuntimeWarning)
 
@@ -23,7 +23,9 @@ class Tool(BaseModel):
     author: str = "Unknown"
     handler: Callable = Field(..., exclude=True)
 
-    def to_delegate_tool(self) -> _DelegateTool:
+    def to_delegate_tool(self):
+        from ._alith import DelegateTool as _DelegateTool
+
         if self.parameters:
             parameters = self.parameters.model_json_schema()
         else:
@@ -69,8 +71,11 @@ def get_function_schema(f: Callable) -> str:
 
 def create_delegate_tool(
     func: Callable, version: str = "1.0.0", author: str = "Unknown"
-) -> _DelegateTool:
+):
     """Create a DelegateTool instance from a Python function."""
+
+    from ._alith import DelegateTool as _DelegateTool
+
     # Get the function JSON schema
     schema = get_function_schema(func)
     # Get function name and description

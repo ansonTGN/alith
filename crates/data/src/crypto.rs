@@ -1,3 +1,7 @@
+pub use base64::{
+    DecodeError as Base64DecodeError, Engine as Base64Engine,
+    engine::general_purpose::STANDARD as BASE64_STANDARD,
+};
 use openpgp::{
     Cert, Result,
     crypto::{Password, SessionKey},
@@ -10,7 +14,11 @@ use openpgp::{
     serialize::stream::{Armorer, Encryptor, LiteralWriter, Message},
     types::SymmetricAlgorithm,
 };
-pub use rsa::{Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey};
+pub use rsa::{
+    Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey,
+    pkcs1::{DecodeRsaPrivateKey, DecodeRsaPublicKey, EncodeRsaPrivateKey, EncodeRsaPublicKey},
+    pkcs8::{DecodePrivateKey, DecodePublicKey, EncodePrivateKey, EncodePublicKey, LineEnding},
+};
 pub use sequoia_openpgp as openpgp;
 use std::io::{Read, Write};
 
@@ -104,7 +112,7 @@ mod tests {
     #[tokio::test]
     async fn test_openpgp() -> Result<()> {
         let privacy_data = b"Hello, Privacy Data with PGP!";
-        let password = LocalEthWallet::random()?.sign().await?;
+        let password = LocalEthWallet::random()?.sign_hex().await?;
         let mut rng = rand_08::thread_rng();
         let priv_key = RsaPrivateKey::new(&mut rng, 3072)?;
         let pub_key = RsaPublicKey::from(&priv_key);

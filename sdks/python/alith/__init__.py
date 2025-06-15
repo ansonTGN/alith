@@ -1,22 +1,23 @@
 from .agent import Agent
-from .tool import Tool
-from .embeddings import (
-    Embeddings,
-    MilvusEmbeddings,
-    FastEmbeddings,
-    RemoteModelEmbeddings,
-    FASTEMBED_AVAILABLE,
-)
-from .store import (
-    Store,
-    ChromaDBStore,
-    CHROMADB_AVAILABLE,
-    MilvusStore,
-    MILVUS_AVAILABLE,
-)
-from .memory import Memory, Message, MessageBuilder, WindowBufferMemory
 from .chunking import chunk_text
+from .embeddings import (
+    FASTEMBED_AVAILABLE,
+    Embeddings,
+    FastEmbeddings,
+    MilvusEmbeddings,
+    RemoteModelEmbeddings,
+)
 from .extractor import Extractor
+from .memory import Memory, MessageBuilder, WindowBufferMemory
+from .store import (
+    CHROMADB_AVAILABLE,
+    MILVUS_AVAILABLE,
+    ChromaDBStore,
+    MilvusStore,
+    Store,
+)
+from .tool import Tool
+from .types import Headers
 
 __all__ = [
     "Agent",
@@ -35,6 +36,6 @@ __all__ = [
     "Extractor",
     "Memory",
     "WindowBufferMemory",
-    "Message",
     "MessageBuilder",
+    "Headers",
 ]

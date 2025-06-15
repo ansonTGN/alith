@@ -40,7 +40,7 @@ pub use core::{
         JsonParseError, parse_and_check_json_markdown, parse_json_markdown, parse_partial_json,
     },
     knowledge::{FileKnowledge, Knowledge, KnowledgeError},
-    llm::{EmbeddingsModel, LLM},
+    llm::{ClientConfig, EmbeddingsModel, LLM},
     mcp::{
         ClientCapabilities, ClientInfo, MCPClient, MCPConfig, MCPError, MCPServerConfig,
         SseTransport, StdioTransport, Transport, setup_mcp_clients, sse_client, stdio_client,
@@ -93,5 +93,8 @@ pub use prompt::{
     ApiPrompt, LLMPrompt, LocalPrompt, MaxTokenState, PromptMessage, PromptMessageType,
     PromptTokenizer, RequestTokenLimitError, apply_chat_template, check_and_get_max_tokens,
 };
+
+#[cfg(feature = "lazai")]
+pub use alith_lazai as lazai;
 
 pub use async_trait::async_trait;

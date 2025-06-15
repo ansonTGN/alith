@@ -1,7 +1,8 @@
-import shutil
 import hashlib
+import shutil
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Callable
+from typing import Callable, List, Optional
+
 from .embeddings import Embeddings
 
 
@@ -162,7 +163,7 @@ class MilvusStore(Store):
         if not MILVUS_AVAILABLE:
             raise ImportError(
                 "pymilvus is not installed. Please install it with: "
-                "python3 -m pip install pymilvus"
+                "python3 -m pip install pymilvus pymilvus[model]"
             )
         self.uri = uri
         self.dimension = dimension

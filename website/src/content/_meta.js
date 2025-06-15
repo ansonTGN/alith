@@ -3,9 +3,10 @@ export default {
   "get-started": "",
   features: "",
   advanced: "",
+  lazai: "LazAI",
   integrations: "",
   tutorials: "",
-  developing: "",
   scripts: "",
+  developing: "",
   roadmap: "",
 };

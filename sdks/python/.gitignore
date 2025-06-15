@@ -4,6 +4,7 @@
 .idea/
 venv
 
+.ruff_cache
 .pytest_cache
 __pycache__
 *.pyc
@@ -15,3 +16,4 @@ alith.egg-info/
 alith/_alith*
 llm_logs
 uv.lock
+node.log
