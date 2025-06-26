@@ -62,4 +62,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    run(host=args.host, port=args.port, model=args.model)
+    run(host=args.host, port=args.port, model=args.model, settlement=True)
