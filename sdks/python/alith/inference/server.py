@@ -22,9 +22,10 @@ def run(
         model_settings = [ModelSettings(model=model)]
         app = create_app(server_settings=server_settings, model_settings=model_settings)
         if settlement:
-            from .settlement import TokenBillingMiddleware, ValidationMiddleware
+            from .settlement import TokenBillingMiddleware
+            from ..lazai.node.middleware import HeaderValidationMiddleware
 
-            app.add_middleware(ValidationMiddleware)
+            app.add_middleware(HeaderValidationMiddleware)
             app.add_middleware(TokenBillingMiddleware)
 
         return uvicorn.run(
