@@ -1,3 +1,8 @@
+"""
+Start the node with the PRIVATE_KEY and RSA_PRIVATE_KEY_BASE64 environment variable set to the base64 encoded RSA private key.
+python3 -m alith.inference.server
+"""
+
 import argparse
 
 import uvicorn
