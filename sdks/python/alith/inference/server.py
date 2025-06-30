@@ -30,8 +30,9 @@ def run(
             from .settlement import TokenBillingMiddleware
             from .query import DataQueryMiddleware
             from ..lazai.node.middleware import HeaderValidationMiddleware
+            from ..lazai.request import INFERENCE_TYPE
 
-            app.add_middleware(HeaderValidationMiddleware)
+            app.add_middleware(HeaderValidationMiddleware, type=INFERENCE_TYPE)
             app.add_middleware(DataQueryMiddleware)
             app.add_middleware(TokenBillingMiddleware)
 
