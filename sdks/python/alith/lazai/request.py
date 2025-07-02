@@ -6,25 +6,27 @@ from web3 import Web3
 USER_HEADER = "X-LazAI-User"
 NONCE_HEADER = "X-LazAI-Nonce"
 SIGNATURE_HEADER = "X-LazAI-Signature"
-TOKEN_ID = "X-LazAI-Token-ID"
+TOKEN_ID_HEADER = "X-LazAI-Token-ID"
+FILE_ID_HEADER = "X-LazAI-File-ID"
 
-TRAINING_TYPE = 1
-INFERENCE_TYPE = 2
+QUERY_TYPE = 0
+INFERENCE_TYPE = 1
+TRAINING_TYPE = 2
 
 
-def validate_request(request: Request, type: int = TRAINING_TYPE, client=None):
+def validate_request(request: Request, type: int = QUERY_TYPE, client=None):
     """Validate the request user and signature in the request headers"""
     user = request.headers[USER_HEADER]
     nonce = request.headers[NONCE_HEADER]
     signature = request.headers[SIGNATURE_HEADER]
-    validate_account_and_signature(user, nonce, signature, type, client)
+    validate_account_and_signature(user, int(nonce), signature, type, client)
 
 
 def validate_account_and_signature(
     user: str,
     nonce: int,
     signature: str,
-    type: int = TRAINING_TYPE,
+    type: int = QUERY_TYPE,
     client=None,
 ):
     """Validate the request user and signature with the user address, nonce and signature"""
@@ -35,7 +37,11 @@ def validate_account_and_signature(
     account = (
         client.get_training_account(user, node)
         if type == TRAINING_TYPE
-        else client.get_inference_account(user, node)
+        else (
+            client.get_inference_account(user, node)
+            if type == INFERENCE_TYPE
+            else client.get_query_account(user, node)
+        )
     )
     if not account or account[0] != user:
         raise Exception(f"Account {user} does not exist or is unauthorized")
@@ -51,7 +57,9 @@ def validate_account_and_signature(
         signature,
     )
     if recovered_address.lower() != user.lower():
-        raise Exception("Signature verification failed: address mismatch")
+        raise Exception(
+            f"Signature verification failed: address mismatch, expect {user} got {recovered_address}",
+        )
 
 
 def recover_address(
@@ -61,7 +69,7 @@ def recover_address(
     signature: str,
 ) -> str:
     message_hash = Web3.keccak(
-        encode(["(uint256,address,address)"], [(nonce, user, node)])
+        encode(["uint256", "address", "address"], (nonce, user, node))
     )
     eth_message = encode_defunct(primitive=message_hash)
     recovered_address = Web3().eth.account.recover_message(

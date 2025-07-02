@@ -1,13 +1,35 @@
+# Local Devnet Contract addresses
+
+DEFAULT_ADMIN_ADDRESS = "0x34d9E02F9bB4E4C8836e38DF4320D4a79106F194"
 DEFAULT_DATA_REGISTRY_CONTRACT_ADDRESS = "0xEAd077726dC83ecF385e3763ed4A0A50E8Ac5AA0"
-DEFAULT_DATA_VERIFIED_COMPUTING_CONTRACT_ADDRESS = (
+DEFAULT_VERIFIED_COMPUTING_CONTRACT_ADDRESS = (
     "0x815da22D880E3560bCEcc85b6e4938b30c8202C4"
 )
-DEFAULT_DATA_ANCHOR_TOKEN_CONTRACT_ADDRESS = (
+DEFAULT_DATA_ANCHORING_TOKEN_CONTRACT_ADDRESS = (
     "0x2eD344c586303C98FC3c6D5B42C5616ED42f9D9d"
 )
-DEFAULT_INFERENCE_CONTRACT_ADSDRESS = "0xE747fd70269a8a540403ddE802D6906CB18C9F50"
-DEFAULT_TRAINING_CONTRACT_ADSDRESS = "0xbb969eaafB3A7124b8dCdf9a6d5Cd5BAa0381361"
-DEFAULT_SETTLEMENT_CONTRACT_ADDRESS = "0xb578AB78bb4780D9007Cc836b358468467814B3E"
+DEFAULT_QUERY_CONTRACT_ADDRESS = "0xE747fd70269a8a540403ddE802D6906CB18C9F50"
+DEFAULT_INFERENCE_CONTRACT_ADDRESS = "0xbb969eaafB3A7124b8dCdf9a6d5Cd5BAa0381361"
+DEFAULT_TRAINING_CONTRACT_ADDRESS = "0xb578AB78bb4780D9007Cc836b358468467814B3E"
+DEFAULT_SETTLEMENT_CONTRACT_ADDRESS = "0xBE94646A0C6C1032c289Eea47169798e09dB5299"
+
+# Testnet Contract Addresses
+
+TESTNET_ADMIN_ADDRESS = "0x34d9E02F9bB4E4C8836e38DF4320D4a79106F194"
+TESTNET_DATA_REGISTRY_CONTRACT_ADDRESS = "0xE7753EeBCA82849D6b19E6689B350f87318A8998"
+TESTNET_VERIFIED_COMPUTING_CONTRACT_ADDRESS = (
+    "0x87E43F24Efc2284fd2BBF11CC80d6fcF3E0AD474"
+)
+TESTNET_DATA_ANCHORING_TOKEN_CONTRACT_ADDRESS = (
+    "0xD59CDFFEb65aCc539994e41D0B40efF61bE37118"
+)
+TESTNET_QUERY_CONTRACT_ADDRESS = "0x5D7fC5A04328b95cae017B664A8e95fa25Ca3e98"
+TESTNET_INFERENCE_CONTRACT_ADDRESS = "0x69BD47252510573995b22ae227560E879b193738"
+TESTNET_TRAINING_CONTRACT_ADDRESS = "0x7e6646feEC69df501D942e16CBE2d14B7bBEC853"
+TESTNET_SETTLEMENT_CONTRACT_ADDRESS = "0xF1398c4Bb36245750393A2511dA8bF1F7828F979"
+
+# Contract ABIs
+
 DATA_REGISTRY_CONTRACT_ABI = [
     {
         "constant": True,
@@ -69,7 +91,10 @@ DATA_REGISTRY_CONTRACT_ABI = [
         "type": "function",
     },
     {
-        "inputs": [{"name": "url", "type": "string"}],
+        "inputs": [
+            {"name": "url", "type": "string"},
+            {"name": "hash", "type": "string"},
+        ],
         "name": "addFile",
         "outputs": [{"name": "", "type": "uint256"}],
         "stateMutability": "nonpayable",
@@ -78,6 +103,7 @@ DATA_REGISTRY_CONTRACT_ABI = [
     {
         "inputs": [
             {"name": "url", "type": "string"},
+            {"name": "hash", "type": "string"},
             {"name": "ownerAddress", "type": "address"},
             {
                 "components": [
@@ -112,9 +138,11 @@ DATA_REGISTRY_CONTRACT_ABI = [
             {
                 "components": [
                     {"name": "id", "type": "uint256"},
+                    {"name": "ownerAddress", "type": "address"},
                     {"name": "url", "type": "string"},
-                    {"name": "owner", "type": "address"},
-                    {"name": "createdAt", "type": "uint256"},
+                    {"name": "hash", "type": "string"},
+                    {"name": "proofIndex", "type": "uint256"},
+                    {"name": "rewardAmount", "type": "uint256"},
                 ],
                 "name": "",
                 "type": "tuple",
@@ -182,6 +210,11 @@ DATA_REGISTRY_CONTRACT_ABI = [
                             {
                                 "internalType": "uint256",
                                 "name": "id",
+                                "type": "uint256",
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "score",
                                 "type": "uint256",
                             },
                             {
@@ -492,7 +525,7 @@ VERIFIED_COMPUTING_CONTRACT_ABI = [
         "type": "function",
     },
 ]
-DATA_ANCHOR_TOKEN_CONTRACT_ABI = [
+DATA_ANCHORING_TOKEN_CONTRACT_ABI = [
     {
         "anonymous": False,
         "inputs": [
@@ -872,7 +905,7 @@ AI_PROCESS_CONTRACT_ABI = [
         "inputs": [
             {
                 "type": "tuple",
-                "name": "proof",
+                "name": "settlement",
                 "components": [
                     {"type": "bytes", "name": "signature"},
                     {
@@ -917,6 +950,20 @@ SETTLEMENT_CONTRACT_ABI = [
     },
     {
         "type": "function",
+        "name": "query",
+        "inputs": [],
+        "outputs": [{"type": "address"}],
+        "stateMutability": "view",
+    },
+    {
+        "type": "function",
+        "name": "updateQuery",
+        "inputs": [{"type": "address", "name": "newQuery"}],
+        "outputs": [],
+        "stateMutability": "nonpayable",
+    },
+    {
+        "type": "function",
         "name": "inference",
         "inputs": [],
         "outputs": [{"type": "address"}],
@@ -954,6 +1001,7 @@ SETTLEMENT_CONTRACT_ABI = [
                     {"type": "address", "name": "addr"},
                     {"type": "uint256", "name": "availableBalance"},
                     {"type": "uint256", "name": "totalBalance"},
+                    {"type": "address[]", "name": "queryNodes"},
                     {"type": "address[]", "name": "inferenceNodes"},
                     {"type": "address[]", "name": "trainingNodes"},
                 ],
@@ -1029,6 +1077,16 @@ SETTLEMENT_CONTRACT_ABI = [
     },
     {
         "type": "function",
+        "name": "depositQuery",
+        "inputs": [
+            {"type": "address", "name": "node"},
+            {"type": "uint256", "name": "amount"},
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable",
+    },
+    {
+        "type": "function",
         "name": "retrieveTraining",
         "inputs": [{"type": "address[]", "name": "nodes"}],
         "outputs": [],
@@ -1037,6 +1095,13 @@ SETTLEMENT_CONTRACT_ABI = [
     {
         "type": "function",
         "name": "retrieveInference",
+        "inputs": [{"type": "address[]", "name": "nodes"}],
+        "outputs": [],
+        "stateMutability": "nonpayable",
+    },
+    {
+        "type": "function",
+        "name": "retrieveQuery",
         "inputs": [{"type": "address[]", "name": "nodes"}],
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -1059,25 +1124,49 @@ class ContractConfig:
         self,
         data_registry_address: str = None,
         verified_computing_address: str = None,
-        data_anchor_token_address: str = None,
-        settlement_address: str = None,
+        data_anchoring_token_address: str = None,
+        query_address: str = None,
         inference_address: str = None,
         training_address: str = None,
+        settlement_address: str = None,
     ):
         self.data_registry_address = (
             data_registry_address or DEFAULT_DATA_REGISTRY_CONTRACT_ADDRESS
         )
         self.verified_computing_address = (
-            verified_computing_address
-            or DEFAULT_DATA_VERIFIED_COMPUTING_CONTRACT_ADDRESS
+            verified_computing_address or DEFAULT_VERIFIED_COMPUTING_CONTRACT_ADDRESS
         )
-        self.data_anchor_token_address = (
-            data_anchor_token_address or DEFAULT_DATA_ANCHOR_TOKEN_CONTRACT_ADDRESS
+        self.data_anchoring_token_address = (
+            data_anchoring_token_address
+            or DEFAULT_DATA_ANCHORING_TOKEN_CONTRACT_ADDRESS
         )
         self.settlement_address = (
             settlement_address or DEFAULT_SETTLEMENT_CONTRACT_ADDRESS
         )
-        self.inference_address = (
-            inference_address or DEFAULT_INFERENCE_CONTRACT_ADSDRESS
+        self.query_address = query_address or DEFAULT_QUERY_CONTRACT_ADDRESS
+        self.inference_address = inference_address or DEFAULT_INFERENCE_CONTRACT_ADDRESS
+        self.training_address = training_address or DEFAULT_TRAINING_CONTRACT_ADDRESS
+
+    @classmethod
+    def local(cls) -> "ContractConfig":
+        return cls(
+            DEFAULT_DATA_REGISTRY_CONTRACT_ADDRESS,
+            DEFAULT_VERIFIED_COMPUTING_CONTRACT_ADDRESS,
+            DEFAULT_DATA_ANCHORING_TOKEN_CONTRACT_ADDRESS,
+            DEFAULT_QUERY_CONTRACT_ADDRESS,
+            DEFAULT_INFERENCE_CONTRACT_ADDRESS,
+            DEFAULT_TRAINING_CONTRACT_ADDRESS,
+            DEFAULT_SETTLEMENT_CONTRACT_ADDRESS,
         )
-        self.training_address = training_address or DEFAULT_TRAINING_CONTRACT_ADSDRESS
+
+    @classmethod
+    def testnet(cls) -> "ContractConfig":
+        return cls(
+            TESTNET_DATA_REGISTRY_CONTRACT_ADDRESS,
+            TESTNET_VERIFIED_COMPUTING_CONTRACT_ADDRESS,
+            TESTNET_DATA_ANCHORING_TOKEN_CONTRACT_ADDRESS,
+            TESTNET_QUERY_CONTRACT_ADDRESS,
+            TESTNET_INFERENCE_CONTRACT_ADDRESS,
+            TESTNET_TRAINING_CONTRACT_ADDRESS,
+            TESTNET_SETTLEMENT_CONTRACT_ADDRESS,
+        )

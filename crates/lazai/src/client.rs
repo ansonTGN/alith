@@ -7,19 +7,22 @@ use alloy::{
     rpc::types::TransactionReceipt,
     sol_types::SolValue,
 };
-use std::ops::Deref;
+use chrono::Utc;
+use rand::Rng;
+use std::{collections::HashMap, ops::Deref};
 use thiserror::Error;
 
 use crate::{
-    ChainConfig, ChainError, ChainManager, Proof, ProofData, SettlementProof, SettlementProofData,
-    Wallet, WalletError,
+    ChainConfig, ChainError, ChainManager, Proof, ProofData, Settlement, SettlementData, Wallet,
+    WalletError,
     chain::AlloyProvider,
     contracts::{
-        Account, ContractConfig, DataAnchorToken::DataAnchorTokenInstance, FileResponse as File,
-        IAIProcess::IAIProcessInstance, IDataRegistry::IDataRegistryInstance,
+        Account, ContractConfig, DataAnchoringToken::DataAnchoringTokenInstance,
+        FileResponse as File, IAIProcess::IAIProcessInstance, IDataRegistry::IDataRegistryInstance,
         ISettlement::ISettlementInstance, IVerifiedComputing::IVerifiedComputingInstance, Job,
         NodeInfo, Permission, User,
     },
+    settlement::SettlementRequest,
 };
 
 #[derive(Debug, Clone)]
@@ -54,15 +57,52 @@ impl Client {
     pub fn new_devnet() -> Result<Self, ClientError> {
         Ok(Self {
             manager: ChainManager::new(ChainConfig::local(), LocalEthWallet::from_env()?)?,
-            config: ContractConfig::default(),
+            config: ContractConfig::local(),
         })
     }
 
-    /// Add privacy data url and encrypted key base64 format into the data registry on LazAI.
-    pub async fn add_file(&self, url: impl AsRef<str>) -> Result<U256, ClientError> {
+    /// New the LazAI client for the testnet.
+    pub fn new_testnet() -> Result<Self, ClientError> {
+        Ok(Self {
+            manager: ChainManager::new(ChainConfig::testnet(), LocalEthWallet::from_env()?)?,
+            config: ContractConfig::testnet(),
+        })
+    }
+
+    pub async fn get_public_key(&self) -> Result<String, ClientError> {
         let contract = self.data_registry_contract();
-        self.send_transaction(contract.addFile(url.as_ref().to_string()), None)
+        let builder = self
+            .call_builder(
+                contract.publicKey(),
+                self.config.data_registry_address,
+                None,
+            )
             .await?;
+        let public_key = builder
+            .call()
+            .await
+            .map_err(|err| ClientError::ContractCallError(err.to_string()))?;
+        Ok(public_key)
+    }
+
+    /// Add privacy data url into the data registry on LazAI.
+    #[inline]
+    pub async fn add_file(&self, url: impl AsRef<str>) -> Result<U256, ClientError> {
+        self.add_file_with_hash(url, "").await
+    }
+
+    /// Add privacy data url and sha256 hash into the data registry on LazAI.
+    pub async fn add_file_with_hash(
+        &self,
+        url: impl AsRef<str>,
+        hash: impl AsRef<str>,
+    ) -> Result<U256, ClientError> {
+        let contract = self.data_registry_contract();
+        self.send_transaction(
+            contract.addFile(url.as_ref().to_string(), hash.as_ref().to_string()),
+            None,
+        )
+        .await?;
 
         self.get_file_id_by_url(url).await
     }
@@ -71,12 +111,18 @@ impl Client {
     pub async fn add_file_with_permissions(
         &self,
         url: impl AsRef<str>,
+        hash: impl AsRef<str>,
         owner: Address,
         permissions: Vec<Permission>,
     ) -> Result<U256, ClientError> {
         let contract = self.data_registry_contract();
         self.send_transaction(
-            contract.addFileWithPermissions(url.as_ref().to_string(), owner, permissions),
+            contract.addFileWithPermissions(
+                url.as_ref().to_string(),
+                hash.as_ref().to_string(),
+                owner,
+                permissions,
+            ),
             None,
         )
         .await?;
@@ -115,7 +161,7 @@ impl Client {
         Ok(file_id)
     }
 
-    /// Get the file information according to the file id on LazAI.
+    /// Get the file information according to the file id.
     pub async fn get_file(&self, file_id: U256) -> Result<File, ClientError> {
         let contract = self.data_registry_contract();
         let builder = self
@@ -132,7 +178,7 @@ impl Client {
         Ok(file)
     }
 
-    /// Get the encryption key for the account on LazAI.
+    /// Get the encryption key for the account.
     pub async fn get_file_permission(
         &self,
         file_id: U256,
@@ -153,7 +199,7 @@ impl Client {
         Ok(key)
     }
 
-    /// Get the file proof on LazAI.
+    /// Get the file proof.
     pub async fn get_file_proof(&self, file_id: U256, index: U256) -> Result<Proof, ClientError> {
         let contract = self.data_registry_contract();
         let builder = self
@@ -367,18 +413,18 @@ impl Client {
         token_uri: String,
         verified: bool,
     ) -> Result<TransactionReceipt, ClientError> {
-        let contract = self.data_anchor_token_contract();
+        let contract = self.data_anchoring_token_contract();
         self.send_transaction(contract.mint(to, amount, token_uri, verified), None)
             .await
     }
 
     /// Returns the balance of a specific Data Anchor Token (DAT) for a given account and token ID.
     pub async fn get_dat_balance(&self, account: Address, id: U256) -> Result<U256, ClientError> {
-        let contract = self.data_anchor_token_contract();
+        let contract = self.data_anchoring_token_contract();
         let builder = self
             .call_builder(
                 contract.balanceOf(account, id),
-                self.config.data_anchor_token_address,
+                self.config.data_anchoring_token_address,
                 None,
             )
             .await?;
@@ -391,11 +437,11 @@ impl Client {
 
     /// Returns the Uri for a specific Data Anchor Token (DAT) by its token ID.
     pub async fn dat_uri(&self, token_id: U256) -> Result<String, ClientError> {
-        let contract = self.data_anchor_token_contract();
+        let contract = self.data_anchoring_token_contract();
         let builder = self
             .call_builder(
                 contract.uri(token_id),
-                self.config.data_anchor_token_address,
+                self.config.data_anchoring_token_address,
                 None,
             )
             .await?;
@@ -454,13 +500,13 @@ impl Client {
         self.send_transaction(contract.withdraw(amount), None).await
     }
 
-    pub async fn deposit_training(
+    pub async fn deposit_query(
         &self,
         node: Address,
         amount: U256,
     ) -> Result<TransactionReceipt, ClientError> {
         let contract = self.settlement_contract();
-        self.send_transaction(contract.depositTraining(node, amount), None)
+        self.send_transaction(contract.depositQuery(node, amount), None)
             .await
     }
 
@@ -474,12 +520,22 @@ impl Client {
             .await
     }
 
-    pub async fn retrieve_training(
+    pub async fn deposit_training(
+        &self,
+        node: Address,
+        amount: U256,
+    ) -> Result<TransactionReceipt, ClientError> {
+        let contract = self.settlement_contract();
+        self.send_transaction(contract.depositTraining(node, amount), None)
+            .await
+    }
+
+    pub async fn retrieve_query(
         &self,
         nodes: Vec<Address>,
     ) -> Result<TransactionReceipt, ClientError> {
         let contract = self.settlement_contract();
-        self.send_transaction(contract.retrieveTraining(nodes), None)
+        self.send_transaction(contract.retrieveQuery(nodes), None)
             .await
     }
 
@@ -490,6 +546,33 @@ impl Client {
         let contract = self.settlement_contract();
         self.send_transaction(contract.retrieveInference(nodes), None)
             .await
+    }
+
+    pub async fn retrieve_training(
+        &self,
+        nodes: Vec<Address>,
+    ) -> Result<TransactionReceipt, ClientError> {
+        let contract = self.settlement_contract();
+        self.send_transaction(contract.retrieveTraining(nodes), None)
+            .await
+    }
+
+    pub async fn add_query_node(
+        &self,
+        address: Address,
+        url: impl AsRef<str>,
+        public_key: impl AsRef<str>,
+    ) -> Result<TransactionReceipt, ClientError> {
+        let contract = self.query_contract();
+        self.send_transaction(
+            contract.addNode(
+                address,
+                url.as_ref().to_string(),
+                public_key.as_ref().to_string(),
+            ),
+            None,
+        )
+        .await
     }
 
     pub async fn add_inference_node(
@@ -508,6 +591,64 @@ impl Client {
             None,
         )
         .await
+    }
+
+    pub async fn remove_query_node(
+        &self,
+        address: Address,
+    ) -> Result<TransactionReceipt, ClientError> {
+        let contract = self.query_contract();
+        self.send_transaction(contract.removeNode(address), None)
+            .await
+    }
+
+    pub async fn get_query_node(&self, address: Address) -> Result<Option<NodeInfo>, ClientError> {
+        let contract = self.query_contract();
+        let builder = self
+            .call_builder(contract.getNode(address), self.config.query_address, None)
+            .await?;
+        let info = builder
+            .call()
+            .await
+            .map_err(|err| ClientError::ContractCallError(err.to_string()))?;
+        if info.url.is_empty() {
+            Ok(None)
+        } else {
+            Ok(Some(info))
+        }
+    }
+
+    /// Get the query node address list
+    pub async fn query_node_list(&self) -> Result<Vec<Address>, ClientError> {
+        let contract = self.query_contract();
+        let builder = self
+            .call_builder(contract.nodeList(), self.config.query_address, None)
+            .await?;
+        let list = builder
+            .call()
+            .await
+            .map_err(|err| ClientError::ContractCallError(err.to_string()))?;
+        Ok(list)
+    }
+
+    pub async fn get_query_account(
+        &self,
+        user: Address,
+        node: Address,
+    ) -> Result<Account, ClientError> {
+        let contract = self.query_contract();
+        let builder = self
+            .call_builder(
+                contract.getAccount(user, node),
+                self.config.query_address,
+                None,
+            )
+            .await?;
+        let list = builder
+            .call()
+            .await
+            .map_err(|err| ClientError::ContractCallError(err.to_string()))?;
+        Ok(list)
     }
 
     pub async fn remove_inference_node(
@@ -658,9 +799,30 @@ impl Client {
         Ok(list)
     }
 
+    pub async fn query_settlement_fees(
+        &self,
+        data: SettlementData,
+    ) -> Result<TransactionReceipt, ClientError> {
+        let contract = self.query_contract();
+        let message_hash = keccak256(data.abi_encode());
+        let signature = format!(
+            "0x{}",
+            self.wallet
+                .sign_message_hex(message_hash.as_slice())
+                .await?
+        );
+        let settlement = Settlement {
+            signature: signature.as_bytes().to_vec().into(),
+            data,
+        };
+
+        self.send_transaction(contract.settlementFees(settlement), None)
+            .await
+    }
+
     pub async fn inference_settlement_fees(
         &self,
-        data: SettlementProofData,
+        data: SettlementData,
     ) -> Result<TransactionReceipt, ClientError> {
         let contract = self.inference_contract();
         let message_hash = keccak256(data.abi_encode());
@@ -670,7 +832,7 @@ impl Client {
                 .sign_message_hex(message_hash.as_slice())
                 .await?
         );
-        let proof = SettlementProof {
+        let proof = Settlement {
             signature: signature.as_bytes().to_vec().into(),
             data,
         };
@@ -681,7 +843,7 @@ impl Client {
 
     pub async fn training_settlement_fees(
         &self,
-        data: SettlementProofData,
+        data: SettlementData,
     ) -> Result<TransactionReceipt, ClientError> {
         let contract = self.training_contract();
         let message_hash = keccak256(data.abi_encode());
@@ -691,13 +853,43 @@ impl Client {
                 .sign_message_hex(message_hash.as_slice())
                 .await?
         );
-        let proof = SettlementProof {
+        let proof = Settlement {
             signature: signature.as_bytes().to_vec().into(),
             data,
         };
 
         self.send_transaction(contract.settlementFees(proof), None)
             .await
+    }
+
+    pub async fn get_request_headers(
+        &self,
+        node: Address,
+        file_id: Option<U256>,
+        nonce: Option<u64>,
+    ) -> Result<HashMap<String, String>, ClientError> {
+        let generated_nonce = nonce.unwrap_or(self.secure_nonce());
+
+        let request = SettlementRequest {
+            nonce: generated_nonce,
+            user: self.wallet.address,
+            node,
+            file_id,
+        };
+
+        let signature = request.generate_signature(&self.wallet).await?;
+
+        Ok(signature.to_request_headers())
+    }
+
+    fn secure_nonce(&self) -> u64 {
+        let now = Utc::now();
+        let timestamp_ms = now.timestamp_millis();
+
+        let mut rng = rand::rng();
+        let random_part = rng.random_range(0..100000);
+
+        timestamp_ms as u64 * 100000 + random_part as u64
     }
 
     #[inline]
@@ -763,11 +955,16 @@ impl Client {
     }
 
     #[inline]
-    fn data_anchor_token_contract(&self) -> DataAnchorTokenInstance<&AlloyProvider> {
-        DataAnchorTokenInstance::new(
-            self.config.data_anchor_token_address,
+    fn data_anchoring_token_contract(&self) -> DataAnchoringTokenInstance<&AlloyProvider> {
+        DataAnchoringTokenInstance::new(
+            self.config.data_anchoring_token_address,
             &self.manager.provider,
         )
+    }
+
+    #[inline]
+    fn query_contract(&self) -> IAIProcessInstance<&AlloyProvider> {
+        IAIProcessInstance::new(self.config.query_address, &self.manager.provider)
     }
 
     #[inline]
@@ -820,4 +1017,6 @@ pub enum ClientError {
     SigningError(String),
     #[error("Transaction error: {0}")]
     TransactionError(String),
+    #[error("Validation error: {0}")]
+    ValidationError(String),
 }

@@ -10,13 +10,13 @@ from web3 import Web3
 from .chain import ChainConfig, ChainManager
 from .contracts import (
     AI_PROCESS_CONTRACT_ABI,
-    DATA_ANCHOR_TOKEN_CONTRACT_ABI,
+    DATA_ANCHORING_TOKEN_CONTRACT_ABI,
     DATA_REGISTRY_CONTRACT_ABI,
     SETTLEMENT_CONTRACT_ABI,
     VERIFIED_COMPUTING_CONTRACT_ABI,
     ContractConfig,
 )
-from .proof import ProofData, SettlementProofData
+from .proof import ProofData, SettlementData
 from .settlement import SettlementRequest
 
 
@@ -30,8 +30,16 @@ class Client(ChainManager):
 
     def __init__(
         self,
-        chain_config: ChainConfig = ChainConfig.testnet(),
-        contract_config: ContractConfig = ContractConfig(),
+        chain_config: ChainConfig = (
+            ChainConfig.local()
+            if getenv("LAZAI_LOCAL_CHAIN")
+            else ChainConfig.testnet()
+        ),
+        contract_config: ContractConfig = (
+            ContractConfig.local()
+            if getenv("LAZAI_LOCAL_CHAIN")
+            else ContractConfig.testnet()
+        ),
         private_key: str = getenv("PRIVATE_KEY", ""),
     ):
         super().__init__(chain_config, private_key)
@@ -46,9 +54,13 @@ class Client(ChainManager):
             address=contract_config.verified_computing_address,
             abi=VERIFIED_COMPUTING_CONTRACT_ABI,
         )
-        self.data_anchor_token_contract = self.w3.eth.contract(
-            address=contract_config.data_anchor_token_address,
-            abi=DATA_ANCHOR_TOKEN_CONTRACT_ABI,
+        self.data_anchoring_token_contract = self.w3.eth.contract(
+            address=contract_config.data_anchoring_token_address,
+            abi=DATA_ANCHORING_TOKEN_CONTRACT_ABI,
+        )
+        self.query_contract = self.w3.eth.contract(
+            address=contract_config.query_address,
+            abi=AI_PROCESS_CONTRACT_ABI,
         )
         self.inference_contract = self.w3.eth.contract(
             address=contract_config.inference_address,
@@ -63,9 +75,22 @@ class Client(ChainManager):
             abi=SETTLEMENT_CONTRACT_ABI,
         )
 
+    def get_public_key(self) -> str:
+        return self.data_registry_contract.functions.publicKey().call()
+
     def add_file(self, url: str) -> int:
-        self.send_transaction(self.data_registry_contract.functions.addFile(url))
+        return self.add_file_with_hash(url, "")
+
+    def add_file_with_hash(self, url: str, hash: str) -> int:
+        self.send_transaction(self.data_registry_contract.functions.addFile(url, hash))
         return self.get_file_id_by_url(url)
+
+    def add_permission_for_file(self, file_id: int, account: str, key: str):
+        return self.send_transaction(
+            self.data_registry_contract.functions.addPermissionForFile(
+                file_id, account, key
+            )
+        )
 
     def get_file_id_by_url(self, url: str) -> int:
         """
@@ -78,6 +103,24 @@ class Client(ChainManager):
             int: The file ID associated with the URL.
         """
         return self.data_registry_contract.functions.getFileIdByUrl(url).call()
+
+    def get_file(self, file_id: int):
+        """Get the file information according to the file id."""
+        return self.data_registry_contract.functions.getFile(file_id).call()
+
+    def get_file_permission(self, file_id: int, account: str):
+        """Get the encryption key for the account."""
+        return self.data_registry_contract.functions.getFilePermission(
+            file_id, account
+        ).call()
+
+    def get_file_proof(self, file_id: int, index: int):
+        """Get the file proof."""
+        return self.data_registry_contract.functions.getFileProof(file_id, index).call()
+
+    def get_files_count(self):
+        """Get the file total count."""
+        return self.data_registry_contract.functions.filesCount().call()
 
     def add_node(self, address: str, url: str, public_key: str):
         return self.send_transaction(
@@ -122,9 +165,10 @@ class Client(ChainManager):
         ).signature.hex()
 
         proof = {
-            "signature": HexBytes(signature).hex(),
+            "signature": Web3.to_bytes(hexstr=HexBytes(signature).hex()),
             "data": {
                 "id": data.id,
+                "score": data.score,
                 "fileUrl": data.file_url,
                 "proofUrl": data.proof_url,
             },
@@ -177,18 +221,20 @@ class Client(ChainManager):
     def mint_dat(self, to: str, amount: int, token_uri: str, verified: bool):
         """Mint a new Data Anchor Token (DAT) with the specified parameters."""
         return self.send_transaction(
-            self.data_anchor_token_contract.functions.mint(
+            self.data_anchoring_token_contract.functions.mint(
                 to, amount, token_uri, verified
             )
         )
 
     def get_dat_balance(self, account: str, id: int):
         """Returns the balance of a specific Data Anchor Token (DAT) for a given account and token ID."""
-        return self.data_anchor_token_contract.functions.balanceOf(account, id).call()
+        return self.data_anchoring_token_contract.functions.balanceOf(
+            account, id
+        ).call()
 
     def data_uri(self, token_id: int):
         """Returns the Uri for a specific Data Anchor Token (DAT) by its token ID."""
-        return self.data_anchor_token_contract.functions.uri(token_id).call()
+        return self.data_anchoring_token_contract.functions.uri(token_id).call()
 
     def get_user(self, user: str):
         """Get the user for the settlement."""
@@ -218,9 +264,9 @@ class Client(ChainManager):
             self.settlement_contract.functions.withdraw(amount)
         )
 
-    def deposit_training(self, node: str, amount: int):
+    def deposit_query(self, node: str, amount: int):
         return self.send_transaction(
-            self.settlement_contract.functions.depositTraining(node, amount)
+            self.settlement_contract.functions.depositQuery(node, amount)
         )
 
     def deposit_inference(self, node: str, amount: int):
@@ -228,14 +274,66 @@ class Client(ChainManager):
             self.settlement_contract.functions.depositInference(node, amount)
         )
 
-    def retrieve_training(self, nodes: List[str]):
+    def deposit_training(self, node: str, amount: int):
         return self.send_transaction(
-            self.settlement_contract.functions.retrieveTraining(nodes)
+            self.settlement_contract.functions.depositTraining(node, amount)
+        )
+
+    def retrieve_query(self, nodes: List[str]):
+        return self.send_transaction(
+            self.settlement_contract.functions.retrieveQuery(nodes)
         )
 
     def retrieve_inference(self, nodes: List[str]):
         return self.send_transaction(
             self.settlement_contract.functions.retrieveInference(nodes)
+        )
+
+    def retrieve_training(self, nodes: List[str]):
+        return self.send_transaction(
+            self.settlement_contract.functions.retrieveTraining(nodes)
+        )
+
+    def add_query_node(self, address: str, url: str, public_key: str):
+        return self.send_transaction(
+            self.query_contract.functions.addNode(address, url, public_key)
+        )
+
+    def remove_query_node(self, address: str):
+        return self.send_transaction(self.query_contract.functions.removeNode(address))
+
+    def get_query_node(self, address: str):
+        return self.query_contract.functions.getNode(address).call()
+
+    def query_node_list(
+        self,
+    ):
+        return self.query_contract.functions.NodeList().call()
+
+    def get_query_account(self, user: str, node: str):
+        return self.query_contract.functions.getAccount(user, node).call()
+
+    def query_settlement_fees(
+        self,
+        data: SettlementData,
+    ):
+        message_hash = Web3.keccak(data.abi_encode())
+        eth_message = encode_defunct(primitive=message_hash)
+        signature = self.w3.eth.account.sign_message(
+            eth_message, self.wallet.key
+        ).signature.hex()
+
+        first_param = Web3.to_bytes(hexstr=signature)
+        second_param = (
+            data.id,
+            data.user,
+            data.cost,
+            data.nonce,
+            Web3.to_bytes(hexstr=data.user_signature),
+        )
+        contract_params = (first_param, second_param)
+        return self.send_transaction(
+            self.query_contract.functions.settlementFees(contract_params)
         )
 
     def add_inference_node(self, address: str, url: str, public_key: str):
@@ -261,7 +359,7 @@ class Client(ChainManager):
 
     def inference_settlement_fees(
         self,
-        data: SettlementProofData,
+        data: SettlementData,
     ):
         message_hash = Web3.keccak(data.abi_encode())
         eth_message = encode_defunct(primitive=message_hash)
@@ -269,18 +367,18 @@ class Client(ChainManager):
             eth_message, self.wallet.key
         ).signature.hex()
 
-        proof = {
-            "signature": HexBytes(signature).hex(),
-            "data": {
-                "id": data.id,
-                "nonce": data.nonce,
-                "user": data.user,
-                "cost": data.cost,
-            },
-        }
+        first_param = Web3.to_bytes(hexstr=signature)
+        second_param = (
+            data.id,
+            data.user,
+            data.cost,
+            data.nonce,
+            Web3.to_bytes(hexstr=data.user_signature),
+        )
+        contract_params = (first_param, second_param)
 
         return self.send_transaction(
-            self.inference_contract.functions.settlementFees(proof)
+            self.inference_contract.functions.settlementFees(contract_params)
         )
 
     def add_training_node(self, address: str, url: str, public_key: str):
@@ -304,29 +402,29 @@ class Client(ChainManager):
     def get_training_account(self, user: str, node: str):
         return self.training_contract.functions.getAccount(user, node).call()
 
-    def training_settlement_fees(self, data: SettlementProofData):
+    def training_settlement_fees(self, data: SettlementData):
         message_hash = Web3.keccak(data.abi_encode())
         eth_message = encode_defunct(primitive=message_hash)
         signature = self.w3.eth.account.sign_message(
             eth_message, self.wallet.key
         ).signature.hex()
 
-        proof = {
-            "signature": HexBytes(signature).hex(),
-            "data": {
-                "id": data.id,
-                "nonce": data.nonce,
-                "user": data.user,
-                "cost": data.cost,
-            },
-        }
+        first_param = Web3.to_bytes(hexstr=signature)
+        second_param = (
+            data.id,
+            data.user,
+            data.cost,
+            data.nonce,
+            Web3.to_bytes(hexstr=data.user_signature),
+        )
+        contract_params = (first_param, second_param)
 
         return self.send_transaction(
-            self.training_contract.functions.settlementFees(proof)
+            self.training_contract.functions.settlementFees(contract_params)
         )
 
     def get_request_headers(
-        self, node: str, nonce: int | None = None
+        self, node: str, file_id: int | None = None, nonce: int | None = None
     ) -> Dict[str, str]:
         """Get the billing-related headers for the request for the AI node"""
 
@@ -338,7 +436,10 @@ class Client(ChainManager):
 
         return (
             SettlementRequest(
-                nonce=nonce or _secure_nonce(), user=self.wallet.address, node=node
+                nonce=nonce or _secure_nonce(),
+                user=self.wallet.address,
+                node=node,
+                file_id=file_id,
             )
             .generate_signature(self.wallet.key)
             .to_request_headers()

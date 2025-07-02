@@ -27,6 +27,7 @@ sol! {
 
     struct ProofData {
         uint256 id;
+        uint256 score;
         string fileUrl;
         string proofUrl;
     }
@@ -58,6 +59,7 @@ sol! {
         uint256 id;
         address ownerAddress;
         string url;
+        string hash;
         uint256 proofIndex;
         uint256 rewardAmount;
     }
@@ -68,7 +70,7 @@ sol! {
     interface IDataRegistry {
         function name() external view returns (string memory);
         function version() external pure returns (uint256);
-        function token() external view returns (DataAnchorToken);
+        function token() external view returns (DataAnchoringToken);
         function verifiedComputing() external view returns (IVerifiedComputing);
         function updateVerifiedComputing(address newVerifiedComputing) external;
 
@@ -79,10 +81,13 @@ sol! {
 
         // Privacy data and file operations
 
-        function addFile(string memory url) external returns (uint256);
-        function addFileWithPermissions(string memory url, address ownerAddress, Permission[] memory permissions)
-            external
-            returns (uint256);
+        function addFile(string memory url, string memory hash) external returns (uint256);
+        function addFileWithPermissions(
+            string memory url,
+            string memory hash,
+            address ownerAddress,
+            Permission[] memory permissions
+        ) external returns (uint256);
         function addPermissionForFile(uint256 fileId, address account, string memory key) external;
 
         // File view functions
@@ -167,7 +172,7 @@ sol! {
         bool processed;
     }
 
-    struct SettlementProofData {
+    struct SettlementData {
         // Use string here and sync with the chat/training id.
         string id;
         address user;
@@ -176,20 +181,21 @@ sol! {
         bytes userSignature;
     }
 
-    struct SettlementProof {
+    struct Settlement {
         bytes signature;
-        SettlementProofData data;
+        SettlementData data;
     }
 
     struct User {
         address addr;
         uint256 availableBalance;
         uint256 totalBalance;
+        address[] queryNodes;
         address[] inferenceNodes;
         address[] trainingNodes;
     }
 
-    // Verified Computing Contract for privacy data and inference in CPU/GPU TEE.
+    // Verified Computing Contract for privacy data proof, query, inference and training in CPU/GPU TEE.
 
     #[sol(rpc)]
     interface IVerifiedComputing {
@@ -261,7 +267,7 @@ sol! {
     }
 
     #[sol(rpc)]
-    contract DataAnchorToken is IERC1155 {
+    contract DataAnchoringToken is IERC1155 {
         event TokenMinted(address indexed to, uint256 indexed tokenId, string tokenURI);
 
         function mint(address to, uint256 amount, string memory tokenURI_, bool verified_) public;
@@ -312,16 +318,18 @@ sol! {
             external
             returns (uint256 totalAmount, uint256 balance, uint256 pendingRefund);
 
-        function settlementFees(SettlementProof memory proof) external;
+        function settlementFees(Settlement memory settlement) external;
     }
 
     #[sol(rpc)]
     interface ISettlement {
         function version() external pure returns (uint256);
-        function training() external view returns (IAIProcess);
-        function updateTraining(address newTraining) external;
+        function query() external view returns (IAIProcess);
+        function updateQuery(address newTraining) external;
         function inference() external view returns (IAIProcess);
         function updateInference(address newInference) external;
+        function training() external view returns (IAIProcess);
+        function updateTraining(address newTraining) external;
 
         function pause() external;
         function unpause() external;
@@ -333,47 +341,102 @@ sol! {
         function deposit() external payable;
         function withdraw(uint256 amount) external;
 
-        function depositTraining(address node, uint256 amount) external;
+        function depositQuery(address node, uint256 amount) external;
         function depositInference(address node, uint256 amount) external;
-        function retrieveTraining(address[] memory nodes) external;
+        function depositTraining(address node, uint256 amount) external;
+
+        function retrieveQuery(address[] memory nodes) external;
         function retrieveInference(address[] memory nodes) external;
+        function retrieveTraining(address[] memory nodes) external;
 
         function settlement(address addr, uint256 cost) external;
     }
 }
 
-pub const DEFAULT_DATA_ANCHOR_TOKEN_CONTRACT_ADDRESS: Address =
+// Local Devnet Contract addresses
+
+pub const DEFAULT_DATA_ANCHORING_TOKEN_CONTRACT_ADDRESS: Address =
     address!("0x2eD344c586303C98FC3c6D5B42C5616ED42f9D9d");
-pub const DEFAULT_DATA_VERIFIED_COMPUTING_CONTRACT_ADDRESS: Address =
+pub const DEFAULT_VERIFIED_COMPUTING_CONTRACT_ADDRESS: Address =
     address!("0x815da22D880E3560bCEcc85b6e4938b30c8202C4");
 pub const DEFAULT_DATA_REGISTRY_CONTRACT_ADDRESS: Address =
     address!("0xEAd077726dC83ecF385e3763ed4A0A50E8Ac5AA0");
-pub const DEFAULT_INFERENCE_CONTRACT_ADSDRESS: Address =
+pub const DEFAULT_QUERY_CONTRACT_ADDRESS: Address =
     address!("0xE747fd70269a8a540403ddE802D6906CB18C9F50");
-pub const DEFAULT_TRAINING_CONTRACT_ADSDRESS: Address =
+pub const DEFAULT_INFERENCE_CONTRACT_ADDRESS: Address =
     address!("0xbb969eaafB3A7124b8dCdf9a6d5Cd5BAa0381361");
-pub const DEFAULT_SETTLEMENT_CONTRACT_ADDRESS: Address =
+pub const DEFAULT_TRAINING_CONTRACT_ADDRESS: Address =
     address!("0xb578AB78bb4780D9007Cc836b358468467814B3E");
+pub const DEFAULT_SETTLEMENT_CONTRACT_ADDRESS: Address =
+    address!("0xBE94646A0C6C1032c289Eea47169798e09dB5299");
+pub const DEFAULT_LAZAI_IDAO_CONTRACT_ADDRESS: Address =
+    address!("0xEA30BA91F4DB33Ef0360Fc04d8E201954474dbD1");
+
+// Testnet Contract addresses
+
+pub const TESTNET_ADMIN_ADDRESS: Address = address!("0x34d9E02F9bB4E4C8836e38DF4320D4a79106F194");
+pub const TESTNET_DATA_REGISTRY_CONTRACT_ADDRESS: Address =
+    address!("0xE7753EeBCA82849D6b19E6689B350f87318A8998");
+pub const TESTNET_VERIFIED_COMPUTING_CONTRACT_ADDRESS: Address =
+    address!("0x87E43F24Efc2284fd2BBF11CC80d6fcF3E0AD474");
+pub const TESTNET_DATA_ANCHORING_TOKEN_CONTRACT_ADDRESS: Address =
+    address!("0xD59CDFFEb65aCc539994e41D0B40efF61bE37118");
+pub const TESTNET_QUERY_CONTRACT_ADDRESS: Address =
+    address!("0x5D7fC5A04328b95cae017B664A8e95fa25Ca3e98");
+pub const TESTNET_INFERENCE_CONTRACT_ADDRESS: Address =
+    address!("0x69BD47252510573995b22ae227560E879b193738");
+pub const TESTNET_TRAINING_CONTRACT_ADDRESS: Address =
+    address!("0x7e6646feEC69df501D942e16CBE2d14B7bBEC853");
+pub const TESTNET_SETTLEMENT_CONTRACT_ADDRESS: Address =
+    address!("0xF1398c4Bb36245750393A2511dA8bF1F7828F979");
 
 #[derive(Debug, Clone)]
 pub struct ContractConfig {
     pub data_registry_address: Address,
     pub verified_computing_address: Address,
-    pub data_anchor_token_address: Address,
-    pub settlement_address: Address,
+    pub data_anchoring_token_address: Address,
+    pub query_address: Address,
     pub inference_address: Address,
     pub training_address: Address,
+    pub settlement_address: Address,
 }
 
 impl Default for ContractConfig {
     fn default() -> Self {
         Self {
             data_registry_address: DEFAULT_DATA_REGISTRY_CONTRACT_ADDRESS,
-            verified_computing_address: DEFAULT_DATA_VERIFIED_COMPUTING_CONTRACT_ADDRESS,
-            data_anchor_token_address: DEFAULT_DATA_ANCHOR_TOKEN_CONTRACT_ADDRESS,
+            verified_computing_address: DEFAULT_VERIFIED_COMPUTING_CONTRACT_ADDRESS,
+            data_anchoring_token_address: DEFAULT_DATA_ANCHORING_TOKEN_CONTRACT_ADDRESS,
+            query_address: DEFAULT_QUERY_CONTRACT_ADDRESS,
+            inference_address: DEFAULT_INFERENCE_CONTRACT_ADDRESS,
+            training_address: DEFAULT_TRAINING_CONTRACT_ADDRESS,
             settlement_address: DEFAULT_SETTLEMENT_CONTRACT_ADDRESS,
-            inference_address: DEFAULT_INFERENCE_CONTRACT_ADSDRESS,
-            training_address: DEFAULT_TRAINING_CONTRACT_ADSDRESS,
+        }
+    }
+}
+
+impl ContractConfig {
+    pub fn local() -> Self {
+        Self {
+            data_registry_address: DEFAULT_DATA_REGISTRY_CONTRACT_ADDRESS,
+            verified_computing_address: DEFAULT_VERIFIED_COMPUTING_CONTRACT_ADDRESS,
+            data_anchoring_token_address: DEFAULT_DATA_ANCHORING_TOKEN_CONTRACT_ADDRESS,
+            query_address: DEFAULT_QUERY_CONTRACT_ADDRESS,
+            inference_address: DEFAULT_INFERENCE_CONTRACT_ADDRESS,
+            training_address: DEFAULT_TRAINING_CONTRACT_ADDRESS,
+            settlement_address: DEFAULT_SETTLEMENT_CONTRACT_ADDRESS,
+        }
+    }
+
+    pub fn testnet() -> Self {
+        Self {
+            data_registry_address: TESTNET_DATA_REGISTRY_CONTRACT_ADDRESS,
+            verified_computing_address: TESTNET_VERIFIED_COMPUTING_CONTRACT_ADDRESS,
+            data_anchoring_token_address: TESTNET_DATA_ANCHORING_TOKEN_CONTRACT_ADDRESS,
+            query_address: TESTNET_QUERY_CONTRACT_ADDRESS,
+            inference_address: TESTNET_INFERENCE_CONTRACT_ADDRESS,
+            training_address: TESTNET_TRAINING_CONTRACT_ADDRESS,
+            settlement_address: TESTNET_SETTLEMENT_CONTRACT_ADDRESS,
         }
     }
 }

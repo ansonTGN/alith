@@ -1,5 +1,9 @@
-import argparse
+"""
+Start the node with the PRIVATE_KEY and RSA_PRIVATE_KEY_BASE64 environment variable set to the base64 encoded RSA private key.
+python3 -m alith.inference.server
+"""
 
+import argparse
 import uvicorn
 
 
@@ -12,8 +16,7 @@ def run(
     settlement: bool = False
 ):
     """Run an inference server with the given address and engine type."""
-    if engine_type not in ["llamacpp"]:
-        raise
+
     if engine_type == "llamacpp":
         from llama_cpp.server.app import create_app
         from llama_cpp.server.settings import ModelSettings, ServerSettings
@@ -22,9 +25,13 @@ def run(
         model_settings = [ModelSettings(model=model)]
         app = create_app(server_settings=server_settings, model_settings=model_settings)
         if settlement:
-            from .settlement import TokenBillingMiddleware, ValidationMiddleware
+            from .settlement import TokenBillingMiddleware
+            from .query import DataQueryMiddleware
+            from ..lazai.node.middleware import HeaderValidationMiddleware
+            from ..lazai.request import INFERENCE_TYPE
 
-            app.add_middleware(ValidationMiddleware)
+            app.add_middleware(HeaderValidationMiddleware, type=INFERENCE_TYPE)
+            app.add_middleware(DataQueryMiddleware)
             app.add_middleware(TokenBillingMiddleware)
 
         return uvicorn.run(
@@ -34,12 +41,29 @@ def run(
             ssl_keyfile=server_settings.ssl_keyfile,
             ssl_certfile=server_settings.ssl_certfile,
         )
+    elif engine_type == "openai":
+        from .proxy_server import app
+
+        if settlement:
+            from .settlement import TokenBillingMiddleware
+            from .query import DataQueryMiddleware
+            from ..lazai.node.middleware import HeaderValidationMiddleware
+            from ..lazai.request import INFERENCE_TYPE
+
+            app.add_middleware(HeaderValidationMiddleware, type=INFERENCE_TYPE)
+            app.add_middleware(DataQueryMiddleware)
+            app.add_middleware(TokenBillingMiddleware)
+        return uvicorn.run(
+            app,
+            host=host,
+            port=port,
+        )
     else:
         raise NotImplementedError()
 
 
 if __name__ == "__main__":
-    description = "Alith inference server. Host your own LLMs!🚀"
+    description = "Alith inference server. Host your own or remote LLMs!🚀"
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
         "--host",
@@ -59,6 +83,18 @@ if __name__ == "__main__":
         help="Model name or path",
         default="/root/models/qwen2.5-1.5b-instruct-q5_k_m.gguf",
     )
+    parser.add_argument(
+        "--engine",
+        type=str,
+        help="Engine type",
+        default="llamacpp",
+    )
     args = parser.parse_args()
 
-    run(host=args.host, port=args.port, model=args.model)
+    run(
+        host=args.host,
+        port=args.port,
+        engine_type=args.engine,
+        model=args.model,
+        settlement=True,
+    )

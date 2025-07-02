@@ -1,5 +1,5 @@
-import { QdrantClient, QdrantClientParams } from '@qdrant/js-client-rest'
-import { Embeddings } from './embeddings'
+import { QdrantClient, QdrantClientParams } from "@qdrant/js-client-rest";
+import type { Embeddings } from "./embeddings";
 
 interface Store {
   /**
@@ -10,44 +10,56 @@ interface Store {
    * @param scoreThreshold - The minimum score threshold for results.
    * @returns A list of results matching the query.
    */
-  search(query: string, limit?: number, scoreThreshold?: number): Promise<string[]>
+  search(
+    query: string,
+    limit?: number,
+    scoreThreshold?: number
+  ): Promise<string[]>;
 
   /**
    * Saves a value into the storage.
    *
    * @param value - The value to save.
    */
-  save(value: string): Promise<void>
+  save(value: string): Promise<void>;
 
   /**
    * Resets the storage by clearing all stored data.
    */
-  reset(): Promise<void>
+  reset(): Promise<void>;
 }
 
 class QdrantStore implements Store {
-  private client: QdrantClient
-  private collectionName: string
-  private embeddings: Embeddings
+  private client: QdrantClient;
+  private collectionName: string;
+  private embeddings: Embeddings;
 
-  constructor(embeddings: Embeddings, collectionName: string = 'alith', params?: QdrantClientParams) {
-    this.embeddings = embeddings
-    this.client = new QdrantClient(params)
-    this.collectionName = collectionName
+  constructor(
+    embeddings: Embeddings,
+    collectionName = "alith",
+    params?: QdrantClientParams
+  ) {
+    this.embeddings = embeddings;
+    this.client = new QdrantClient(params);
+    this.collectionName = collectionName;
   }
 
-  async search(query: string, limit: number = 3, scoreThreshold: number = 0.4): Promise<string[]> {
-    const queryVectors = await this.embedTexts([query])
+  async search(
+    query: string,
+    limit = 3,
+    scoreThreshold = 0.4
+  ): Promise<string[]> {
+    const queryVectors = await this.embedTexts([query]);
     const searchResult = await this.client.search(this.collectionName, {
       vector: queryVectors[0],
       limit,
       score_threshold: scoreThreshold,
-    })
-    return searchResult.map((point) => point.payload?.text as string)
+    });
+    return searchResult.map((point) => point.payload?.text as string);
   }
 
   async save(value: string): Promise<void> {
-    const vectors = await this.embedTexts([value])
+    const vectors = await this.embedTexts([value]);
     await this.client.upsert(this.collectionName, {
       points: [
         {
@@ -56,34 +68,34 @@ class QdrantStore implements Store {
           payload: { text: value },
         },
       ],
-    })
+    });
   }
 
   async reset(): Promise<void> {
-    await this.client.deleteCollection(this.collectionName)
+    await this.client.deleteCollection(this.collectionName);
     await this.client.createCollection(this.collectionName, {
       vectors: {
         size: 384,
-        distance: 'Cosine',
+        distance: "Cosine",
       },
-    })
+    });
   }
 
   async saveDocs(values: string[]): Promise<void> {
-    const vectors = await this.embedTexts(values)
+    const vectors = await this.embedTexts(values);
     const points = values.map((value, index) => ({
       id: Math.random().toString(36).substring(7),
       vector: vectors[index],
       payload: { text: value },
-    }))
+    }));
     await this.client.upsert(this.collectionName, {
       points,
-    })
+    });
   }
 
   private async embedTexts(text: string[]): Promise<number[][]> {
-    return this.embeddings.embedTexts(text)
+    return this.embeddings.embedTexts(text);
   }
 }
 
-export { Store, QdrantStore, QdrantClient, QdrantClientParams }
+export { type Store, QdrantStore, QdrantClient, QdrantClientParams };

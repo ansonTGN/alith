@@ -1,6 +1,6 @@
 {
   "name": "alith",
-  "version": "0.8.2",
+  "version": "0.10.3",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/0xLazAI/alith.git"
@@ -33,6 +33,21 @@
       "import": "./dist/lazai/node/index.js",
       "require": "./dist/lazai/node/index.js",
       "types": "./dist/lazai/node/index.d.ts"
+    },
+    "./tee": {
+      "import": "./dist/tee/index.js",
+      "require": "./dist/tee/index.js",
+      "types": "./dist/tee/index.d.ts"
+    },
+    "./tee/phala": {
+      "import": "./dist/tee/phala.js",
+      "require": "./dist/tee/phala.js",
+      "types": "./dist/tee/phala.d.ts"
+    },
+    "./tee/marlin": {
+      "import": "./dist/tee/marlin.js",
+      "require": "./dist/tee/marlin.js",
+      "types": "./dist/tee/marlin.d.ts"
     }
   },
   "napi": {
@@ -84,28 +99,13 @@
     "version": "napi version",
     "tsc": "npx tsc --build && cp ./src/internal* dist"
   },
-  "prettier": {
-    "overrides": [
-      {
-        "files": "./**/*.{js,ts,mjs,jsx,tsx}",
-        "options": {
-          "arrowParens": "always",
-          "parser": "typescript",
-          "printWidth": 120,
-          "semi": false,
-          "singleQuote": true,
-          "tabWidth": 2,
-          "trailingComma": "all"
-        }
-      }
-    ]
-  },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
   "dependencies": {
     "@openpgp/web-stream-tools": "^0.1.3",
+    "@phala/dstack-sdk": "^0.2.2",
     "@qdrant/js-client-rest": "^1.13.0",
     "async-mutex": "^0.5.0",
     "axios": "^1.8.1",
