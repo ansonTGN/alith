@@ -89,6 +89,12 @@ if __name__ == "__main__":
         help="Engine type",
         default="llamacpp",
     )
+    parser.add_argument(
+        "--settlement",
+        type=bool,
+        help="Enable the settlement middleware",
+        default=True,
+    )
     args = parser.parse_args()
 
     run(
@@ -96,5 +102,5 @@ if __name__ == "__main__":
         port=args.port,
         engine_type=args.engine,
         model=args.model,
-        settlement=True,
+        settlement=args.settlement,
     )

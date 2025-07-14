@@ -78,7 +78,7 @@ dependencies = [
 
 [[package]]
 name = "alith"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith-client",
  "alith-core",
@@ -109,7 +109,7 @@ dependencies = [
 
 [[package]]
 name = "alith-client"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith-devices",
  "alith-interface",
@@ -131,7 +131,7 @@ dependencies = [
 
 [[package]]
 name = "alith-core"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith-client",
  "alith-interface",
@@ -163,7 +163,7 @@ dependencies = [
 
 [[package]]
 name = "alith-data"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith-core",
  "alloy",
@@ -188,7 +188,7 @@ dependencies = [
 
 [[package]]
 name = "alith-devices"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "anyhow",
  "colorful",
@@ -204,7 +204,7 @@ dependencies = [
 
 [[package]]
 name = "alith-inference"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith-core",
  "alith-models",
@@ -238,7 +238,7 @@ dependencies = [
 
 [[package]]
 name = "alith-interface"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith-devices",
  "alith-models",
@@ -263,7 +263,7 @@ dependencies = [
 
 [[package]]
 name = "alith-knowledge"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith-client",
  "alith-core",
@@ -276,7 +276,7 @@ dependencies = [
 
 [[package]]
 name = "alith-lazai"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith-data",
  "alloy",
@@ -293,7 +293,7 @@ dependencies = [
 
 [[package]]
 name = "alith-models"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith-prompt",
  "anyhow",
@@ -316,7 +316,7 @@ dependencies = [
 
 [[package]]
 name = "alith-node-sdk"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith",
  "async-trait",
@@ -333,7 +333,7 @@ dependencies = [
 
 [[package]]
 name = "alith-prompt"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith-models",
  "anyhow",
@@ -346,7 +346,7 @@ dependencies = [
 
 [[package]]
 name = "alith-python-sdk"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith",
  "async-trait",
@@ -359,7 +359,7 @@ dependencies = [
 
 [[package]]
 name = "alith-rust-sdk"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith",
  "async-trait",
@@ -370,7 +370,7 @@ dependencies = [
 
 [[package]]
 name = "alith-store"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith-core",
  "anyhow",
@@ -389,7 +389,7 @@ dependencies = [
 
 [[package]]
 name = "alith-tee"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith-core",
  "anyhow",
@@ -412,7 +412,7 @@ dependencies = [
 
 [[package]]
 name = "alith-tools"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "alith-core",
  "async-trait",
@@ -432,9 +432,9 @@ checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
 name = "alloy"
-version = "1.0.17"
+version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e0d1aecf3cab3d0e7383064ce488616434b4ade10d8904dff422e74203c712f"
+checksum = "ae58d888221eecf621595e2096836ce7cfc37be06bfa39d7f64aa6a3ea4c9e5b"
 dependencies = [
  "alloy-consensus",
  "alloy-contract",
@@ -1923,15 +1923,15 @@ dependencies = [
 
 [[package]]
 name = "cargo-util-schemas"
-version = "0.2.0"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e63d2780ac94487eb9f1fea7b0d56300abc9eb488800854ca217f102f5caccca"
+checksum = "7dc1a6f7b5651af85774ae5a34b4e8be397d9cf4bc063b7e6dbd99a841837830"
 dependencies = [
  "semver 1.0.26",
  "serde",
  "serde-untagged",
  "serde-value",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
  "toml",
  "unicode-xid",
  "url",
@@ -1939,9 +1939,9 @@ dependencies = [
 
 [[package]]
 name = "cargo_metadata"
-version = "0.20.0"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f7835cfc6135093070e95eb2b53e5d9b5c403dc3a6be6040ee026270aa82502"
+checksum = "5cfca2aaa699835ba88faf58a06342a314a950d2b9686165e038286c30316868"
 dependencies = [
  "camino",
  "cargo-platform",
@@ -4167,9 +4167,9 @@ dependencies = [
 
 [[package]]
 name = "hyper-util"
-version = "0.1.14"
+version = "0.1.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc2fdfdbff08affe55bb779f33b053aa1fe5dd5b54c257343c17edfa55711bdb"
+checksum = "7f66d5bd4c6f02bf0542fad85d626775bab9258cf795a4256dcaf3161114d1df"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -4856,9 +4856,9 @@ checksum = "241eaef5fd12c88705a01fc1066c48c4b36e0dd4377dcdc7ec3942cea7a69956"
 
 [[package]]
 name = "llama-cpp-2"
-version = "0.1.108"
+version = "0.1.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1881e45e7306b2d2fdb2b322619ce1dba7a4873a4d358f815976d7b4540952b"
+checksum = "bfa04a120b4603a6a667a874754533c2cc2e6699b4eb5d48a1b52c8bc6823ebd"
 dependencies = [
  "enumflags2",
  "llama-cpp-sys-2",
@@ -6071,7 +6071,7 @@ dependencies = [
 [[package]]
 name = "ort"
 version = "2.0.0-rc.10"
-source = "git+https://github.com/pykeio/ort.git#250156405239d7de60a19d37f5a3c752dcc94f7a"
+source = "git+https://github.com/pykeio/ort.git#5d85209c11fd315cdbe04067435c5bed96937b10"
 dependencies = [
  "ndarray",
  "ort-sys 2.0.0-rc.10",
@@ -6097,7 +6097,7 @@ dependencies = [
 [[package]]
 name = "ort-sys"
 version = "2.0.0-rc.10"
-source = "git+https://github.com/pykeio/ort.git#250156405239d7de60a19d37f5a3c752dcc94f7a"
+source = "git+https://github.com/pykeio/ort.git#5d85209c11fd315cdbe04067435c5bed96937b10"
 dependencies = [
  "pkg-config",
 ]
@@ -7845,7 +7845,7 @@ checksum = "015e5fc3d023418b9db98ca9a7f3e90b305872eeafe5ca45c5c32b5eb335c1e8"
 dependencies = [
  "anyhow",
  "argon2",
- "base64 0.22.1",
+ "base64 0.21.7",
  "buffered-reader",
  "bzip2",
  "chrono",
@@ -9047,9 +9047,9 @@ dependencies = [
 
 [[package]]
 name = "tokio"
-version = "1.46.0"
+version = "1.46.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1140bb80481756a8cbe10541f37433b459c5aa1e727b4c020fbfebdc25bf3ec4"
+checksum = "0cc3a2344dafbe23a245241fe8b09735b521110d30fcefbbd5feb1797ca35d17"
 dependencies = [
  "backtrace",
  "bytes",
