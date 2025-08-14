@@ -1,16 +1,12 @@
 {
-  "name": "@lazai-labs/alith-linux-x64-gnu",
+  "name": "@lazai-labs/alith-linux-arm64-gnu",
   "repository": "https://github.com/0xLazAI/alith",
   "version": "0.11.1",
   "os": [
     "linux"
   ],
   "cpu": [
-    "x64"
-  ],
-  "main": "alith.linux-x64-gnu.node",
-  "files": [
-    "alith.linux-x64-gnu.node"
+    "arm64"
   ],
   "license": "Apache-2.0",
   "engines": {
