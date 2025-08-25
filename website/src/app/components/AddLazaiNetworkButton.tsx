@@ -18,15 +18,15 @@ export default function AddLazaiNetworkButton() {
         params: [
           {
             chainId: "0x20A56", // 133718 in hex
-            chainName: "LazAI (Pre Testnet)",
+            chainName: "LazAI Testnet",
             nativeCurrency: {
               name: "LAZAI",
               symbol: "LAZAI",
               decimals: 18,
             },
-            rpcUrls: ["https://lazai-testnet.metisdevops.link"],
+            rpcUrls: ["https://testnet.lazai.network"],
             blockExplorerUrls: [
-              "https://lazai-testnet-explorer.metisdevops.link",
+              "https://testnet-explorer.lazai.network",
             ],
           },
         ],
