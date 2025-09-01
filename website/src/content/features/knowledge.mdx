@@ -111,14 +111,182 @@ async fn main() -> Result<(), anyhow::Error> {
   </Tabs.Tab>
 
   <Tabs.Tab>
+  ## String Source Knowledge
 
-Comming Soon
+  ```python
+  from alith import Agent, StringKnowledge
+
+def main():
+    knowledges = [StringKnowledge("Reference Joke 1")]
+    agent = Agent(
+        name="simple agent",
+        model="gpt-4",
+        preamble="You are a comedian here to entertain the user using humour and jokes."
+    )
+    agent.knowledges = knowledges
+    response = agent.prompt("Entertain me!")
+    print(response)
+
+if __name__ == "__main__":
+    main()
+  ```
+
+  ## Text Source Knowledge
+
+  ```python
+  from alith import Agent, TextFileKnowledge
+
+def main():
+    knowledges = [TextFileKnowledge("path/to/text.txt")]
+    agent = Agent(
+        name="simple agent",
+        model="gpt-4",
+        preamble="You are a comedian here to entertain the user using humour and jokes."
+    )
+    agent.knowledges = knowledges
+    response = agent.prompt("Entertain me!")
+    print(response)
+
+if __name__ == "__main__":
+    main()
+  ```
+
+  ## PDF Source Knowledge
+
+  ```python
+  from alith import Agent, PdfFileKnowledge
+
+def main():
+    knowledges = [PdfFileKnowledge("path/to/pdf.pdf")]
+    agent = Agent(
+        name="simple agent",
+        model="gpt-4",
+        preamble="You are a comedian here to entertain the user using humour and jokes."
+    )
+    agent.knowledges = knowledges
+    response = agent.prompt("Entertain me!")
+    print(response)
+
+if __name__ == "__main__":
+    main()
+  ```
+
+  ## HTML Source Knowledge
+
+  ```python
+  import requests
+  from alith import Agent, HtmlKnowledge
+
+def main():
+    url = "https://en.m.wikivoyage.org/wiki/Seoul"
+    html = requests.get(url).text
+
+    knowledges = [HtmlKnowledge(html, url, to_markdown=False)]
+    agent = Agent(
+        name="simple agent",
+        model="gpt-4",
+        preamble="You are a comedian here to entertain the user using humour and jokes."
+    )
+    agent.knowledges = knowledges
+    response = agent.prompt("Entertain me!")
+    print(response)
+
+if __name__ == "__main__":
+    main()
+  ```
 
   </Tabs.Tab>
 
   <Tabs.Tab>
 
-Comming Soon
+  ## String Source Knowledge
 
+  ```typescript
+
+import { Agent, LLM, StringKnowledge } from "alith";
+
+async function main(): Promise<void> {
+  try {
+    const knowledges = [
+      new StringKnowledge("Reference Joke 1")
+    ];
+    const model = await LLM.fromModelName("gpt-4");
+    const agent = new Agent("simple agent", model)
+      .preamble("You are a comedian here to entertain the user using humour and jokes.");
+    agent.knowledges = knowledges;
+    const response: string = await agent.prompt("Entertain me!");
+    console.log(response);
+  } catch (err) {
+    console.error("Error:", err);
+  }
+}
+
+main();
+
+}
+  ```
+
+  ## Text Source Knowledge
+
+  ```typescript
+  const { Agent, TextFileKnowledge } = require('alith');
+
+async function main() {
+    const knowledges = [new TextFileKnowledge("path/to/text.txt")];
+    const agent = new Agent({
+        name: "simple agent",
+        model: "gpt-4",
+        preamble: "You are a comedian here to entertain the user using humour and jokes."
+    });
+    agent.knowledges = knowledges;
+    const response = await agent.prompt("Entertain me!");
+    console.log(response);
+}
+
+main().catch(console.error);
+  ```
+
+  ## PDF Source Knowledge
+
+  ```typescript
+  const { Agent, PdfFileKnowledge } = require('alith');
+
+async function main() {
+    const knowledges = [new PdfFileKnowledge("path/to/pdf.pdf")];
+    const agent = new Agent({
+        name: "simple agent",
+        model: "gpt-4",
+        preamble: "You are a comedian here to entertain the user using humour and jokes."
+    });
+    agent.knowledges = knowledges;
+    const response = await agent.prompt("Entertain me!");
+    console.log(response);
+}
+
+main().catch(console.error);
+  ```
+
+  ## HTML Source Knowledge
+
+  ```typescript
+  const { Agent, HtmlKnowledge } = require('alith');
+const axios = require('axios');
+
+async function main() {
+    const url = "https://en.m.wikivoyage.org/wiki/Seoul";
+    const html = (await axios.get(url)).data;
+    const knowledges = [new HtmlKnowledge(html, url, false)];
+    const agent = new Agent({
+        name: "simple agent",
+        model: "gpt-4",
+        preamble: "You are a comedian here to entertain the user using humour and jokes."
+    });
+    agent.knowledges = knowledges;
+    const response = await agent.prompt("Entertain me!");
+    console.log(response);
+}
+
+main().catch(console.error);
+    ```
 </Tabs.Tab>
 </Tabs>
