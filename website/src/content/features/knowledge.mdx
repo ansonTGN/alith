@@ -202,7 +202,24 @@ if __name__ == "__main__":
   ## String Source Knowledge
 
   ```typescript
+  
+  use alith::{Agent, Chat, LLM, Knowledge, StringKnowledge};
+use std::sync::Arc;
 
+async fn main() -> Result<(), anyhow::Error> {
+    let knowledges: Vec<Box<dyn Knowledge>> = vec![
+        Box::new(StringKnowledge::new("Reference Joke 1")),
+    ];
+    let model = LLM::from_model_name("gpt-4")?;
+    let mut agent = Agent::new("simple agent", model)
+        .preamble("You are a comedian here to entertain the user using humour and jokes.");
+    agent.knowledges = Arc::new(knowledges);
+    let response = agent.prompt("Entertain me!").await?;
+
+    println!("{}", response);
+
+    Ok(())
+=======
 import { Agent, LLM, StringKnowledge } from "alith";
 
 async function main(): Promise<void> {
@@ -229,18 +246,21 @@ main();
   ## Text Source Knowledge
 
   ```typescript
-  const { Agent, TextFileKnowledge } = require('alith');
+const { Agent, TextFileKnowledge } = require("alith");
 
 async function main() {
-    const knowledges = [new TextFileKnowledge("path/to/text.txt")];
-    const agent = new Agent({
-        name: "simple agent",
-        model: "gpt-4",
-        preamble: "You are a comedian here to entertain the user using humour and jokes."
-    });
-    agent.knowledges = knowledges;
-    const response = await agent.prompt("Entertain me!");
-    console.log(response);
+  const knowledges = [new TextFileKnowledge("path/to/text.txt")];
+
+  const agent = new Agent({
+    name: "simple agent",
+    model: "gpt-4",
+    preamble: "You are a comedian here to entertain the user using humour and jokes.",
+  });
+
+  agent.knowledges = knowledges;
+
+  const response = await agent.prompt("Entertain me!");
+  console.log(response.output_text);
 }
 
 main().catch(console.error);
@@ -249,18 +269,21 @@ main().catch(console.error);
   ## PDF Source Knowledge
 
   ```typescript
-  const { Agent, PdfFileKnowledge } = require('alith');
+  const { Agent, PdfFileKnowledge } = require("alith");
 
 async function main() {
-    const knowledges = [new PdfFileKnowledge("path/to/pdf.pdf")];
-    const agent = new Agent({
-        name: "simple agent",
-        model: "gpt-4",
-        preamble: "You are a comedian here to entertain the user using humour and jokes."
-    });
-    agent.knowledges = knowledges;
-    const response = await agent.prompt("Entertain me!");
-    console.log(response);
+  const knowledges = [new PdfFileKnowledge("path/to/pdf.pdf")];
+
+  const agent = new Agent({
+    name: "simple agent",
+    model: "gpt-4",
+    preamble: "You are a comedian here to entertain the user using humour and jokes.",
+  });
+
+  agent.knowledges = knowledges;
+
+  const response = await agent.prompt("Entertain me!");
+  console.log(response.output_text);
 }
 
 main().catch(console.error);
@@ -269,24 +292,29 @@ main().catch(console.error);
   ## HTML Source Knowledge
 
   ```typescript
-  const { Agent, HtmlKnowledge } = require('alith');
-const axios = require('axios');
+  const { Agent, HtmlKnowledge } = require("alith");
+const axios = require("axios");
 
 async function main() {
-    const url = "https://en.m.wikivoyage.org/wiki/Seoul";
-    const html = (await axios.get(url)).data;
-    const knowledges = [new HtmlKnowledge(html, url, false)];
-    const agent = new Agent({
-        name: "simple agent",
-        model: "gpt-4",
-        preamble: "You are a comedian here to entertain the user using humour and jokes."
-    });
-    agent.knowledges = knowledges;
-    const response = await agent.prompt("Entertain me!");
-    console.log(response);
+  const url = "https://en.m.wikivoyage.org/wiki/Seoul";
+  const html = (await axios.get(url)).data;
+
+  const knowledges = [new HtmlKnowledge(html, url, false)];
+
+  const agent = new Agent({
+    name: "simple agent",
+    model: "gpt-4",
+    preamble: "You are a comedian here to entertain the user using humour and jokes.",
+  });
+
+  agent.knowledges = knowledges;
+
+  const response = await agent.prompt("Entertain me!");
+  console.log(response.output_text);
 }
 
 main().catch(console.error);
+
     ```
 </Tabs.Tab>
 </Tabs>
