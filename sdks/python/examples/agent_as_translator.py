@@ -1,5 +1,4 @@
 from alith import Agent
-import os
 
 # --- Configuration ---
 # You can change the model here if you like
