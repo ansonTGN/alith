@@ -18,13 +18,14 @@ env:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
       - name: Install build dependencies
         run: |
           sudo apt-get update
+          sudo apt-get install -y cmake build-essential clang llvm pkg-config nettle-dev ||
           sudo apt-get install -y cmake build-essential clang llvm pkg-config libnettle-dev
 
       - name: Install Rust toolchain
@@ -69,6 +70,7 @@ jobs:
         if: matrix.os == 'ubuntu-22.04' || matrix.os == 'ubuntu-22.04-arm'
         run: |
           sudo apt-get update
+          sudo apt-get install -y cmake build-essential clang llvm pkg-config nettle-dev ||
           sudo apt-get install -y cmake build-essential clang llvm pkg-config libnettle-dev
 
       - name: Install build dependencies (macOS)
