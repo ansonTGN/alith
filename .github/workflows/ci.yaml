@@ -81,8 +81,17 @@ jobs:
       - name: Install build dependencies (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          choco install cmake
-          # Install vcpkg for Windows dependencies
+          choco install -y cmake msys2
+          refreshenv
+
+          # Update msys2 DB and install pkg-config and nettle for mingw-w64
+          C:\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm"
+          C:\msys64\usr\bin\bash.exe -lc "pacman -S --noconfirm mingw-w64-x86_64-pkg-config mingw-w64-x86_64-nettle"
+
+          # Add mingw64 binaries to PATH so pkg-config is on PATH for cargo build
+          echo "C:\msys64\mingw64\bin" >> $env:GITHUB_PATH
+
+          # Keep vcpkg for other deps if needed
           git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
           C:\vcpkg\bootstrap-vcpkg.bat
           C:\vcpkg\vcpkg install nettle:x64-windows
