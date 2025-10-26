@@ -84,31 +84,17 @@ jobs:
           choco install -y cmake
           refreshenv
 
-          # Install pkg-config and nettle via MSYS2 (more reliable than choco)
-          choco install -y msys2
-          refreshenv
-          
-          # Update MSYS2 and install required packages
-          C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm"
-          C:\tools\msys64\usr\bin\bash.exe -lc "pacman -S --noconfirm mingw-w64-x86_64-pkg-config mingw-w64-x86_64-nettle mingw-w64-x86_64-clang"
-          
-          # Add MSYS2 mingw64 binaries to PATH
-          echo "C:\tools\msys64\mingw64\bin" >> $env:GITHUB_PATH
-          
-          # Set environment variables for pkg-config
-          echo "PKG_CONFIG_PATH=C:\tools\msys64\mingw64\lib\pkgconfig" >> $env:GITHUB_ENV
-          echo "PKG_CONFIG_ALLOW_SYSTEM_LIBS=1" >> $env:GITHUB_ENV
-          echo "PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1" >> $env:GITHUB_ENV
-
-          # Also install nettle via vcpkg as fallback
+          # Install nettle via vcpkg (MSVC-compatible)
           git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
           C:\vcpkg\bootstrap-vcpkg.bat
           C:\vcpkg\vcpkg install nettle:x64-windows
           
-          # Set environment variables so cargo can find nettle
+          # Set environment variables for nettle-sys
           echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
           echo "NETTLE_LIB_DIR=C:\vcpkg\installed\x64-windows\lib" >> $env:GITHUB_ENV
           echo "NETTLE_INCLUDE_DIR=C:\vcpkg\installed\x64-windows\include" >> $env:GITHUB_ENV
+          echo "NETTLE_STATIC=1" >> $env:GITHUB_ENV
+          echo "NETTLE_PREGENERATED_BINDINGS=1" >> $env:GITHUB_ENV
           
           # Add vcpkg lib directory to PATH for DLLs
           echo "C:\vcpkg\installed\x64-windows\bin" >> $env:GITHUB_PATH
@@ -123,6 +109,12 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Set MSVC toolchain for Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          rustup default stable-x86_64-pc-windows-msvc
+          rustup target add x86_64-pc-windows-msvc
 
       - name: Run tests
         run: cargo nextest run --workspace --exclude alith-python-sdk --exclude alith-node-sdk
