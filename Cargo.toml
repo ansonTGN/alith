@@ -69,6 +69,7 @@ text-splitter = { version = "0.26.0", features = ["markdown", "tiktoken-rs"] }
 rsa = "0.9.8"
 sequoia-openpgp = "2.0.0"
 nettle = { version = "7.4.0", features = ["vendored"], default-features = false }
+nettle-sys = { version = "2.3.1", features = ["vendored"], default-features = false }
 sysinfo = { version = "0.35.2", default-features = false, features = [
     "system",
 ] }
@@ -135,6 +136,11 @@ license = "Apache-2.0"
 repository = "https://github.com/0xLazAI/alith"
 authors = ["LazAI Labs Authors", "Shelby Jenkins"]
 readme = "README.md"
+
+# Override nettle dependencies to use vendored sources
+[patch.crates-io]
+nettle = { version = "7.4.0", features = ["vendored"], default-features = false }
+nettle-sys = { version = "2.3.1", features = ["vendored"], default-features = false }
 
 [profile.release]
 opt-level = 3
