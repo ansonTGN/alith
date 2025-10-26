@@ -94,6 +94,7 @@ jobs:
           echo "NETTLE_LIB_DIR=C:\vcpkg\installed\x64-windows\lib" >> $env:GITHUB_ENV
           echo "NETTLE_INCLUDE_DIR=C:\vcpkg\installed\x64-windows\include" >> $env:GITHUB_ENV
           echo "NETTLE_STATIC=1" >> $env:GITHUB_ENV
+          echo "NETTLE_NO_PKG_CONFIG=1" >> $env:GITHUB_ENV
           echo "NETTLE_PREGENERATED_BINDINGS=1" >> $env:GITHUB_ENV
           
           # Add vcpkg lib directory to PATH for DLLs
