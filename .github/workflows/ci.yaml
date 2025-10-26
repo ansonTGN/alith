@@ -22,6 +22,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential
+
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -59,6 +64,22 @@ jobs:
       TARGET: ${{ matrix.target }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install build dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-22.04' || matrix.os == 'ubuntu-22.04-arm'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential
+
+      - name: Install build dependencies (macOS)
+        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        run: |
+          brew install cmake
+
+      - name: Install build dependencies (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install cmake
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
