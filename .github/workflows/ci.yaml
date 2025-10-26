@@ -25,7 +25,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake build-essential
+          sudo apt-get install -y cmake build-essential clang llvm pkg-config libnettle-dev
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
@@ -69,17 +69,22 @@ jobs:
         if: matrix.os == 'ubuntu-22.04' || matrix.os == 'ubuntu-22.04-arm'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake build-essential
+          sudo apt-get install -y cmake build-essential clang llvm pkg-config libnettle-dev
 
       - name: Install build dependencies (macOS)
         if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
         run: |
-          brew install cmake
+          brew install cmake nettle
 
       - name: Install build dependencies (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           choco install cmake
+          # Install vcpkg for Windows dependencies
+          git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
+          C:\vcpkg\bootstrap-vcpkg.bat
+          C:\vcpkg\vcpkg install nettle:x64-windows
+          echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
