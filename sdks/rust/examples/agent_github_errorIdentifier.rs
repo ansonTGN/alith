@@ -3,7 +3,7 @@ use alith::{Agent, Chat, LLM};
 #[tokio::main]
 async fn main() {
     let model = LLM::openai_compatible_model(
-        "<Your API Key>",
+        "Your-api-key",
         "https://api.groq.com/openai/v1",
         "llama-3.1-8b-instant",
     )

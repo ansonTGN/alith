@@ -13,7 +13,7 @@ path = "examples/agent_groq.rs"
 
 [[example]]
 name = "agent_github_errorIdentifier"
-path = "agent_github_errorIdentifier.rs"
+path = "examples/agent_github_errorIdentifier.rs"
 
 [dependencies]
 alith.workspace = true
