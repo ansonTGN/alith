@@ -84,7 +84,23 @@ jobs:
           choco install -y cmake
           refreshenv
 
-          # Install nettle via vcpkg
+          # Install pkg-config and nettle via MSYS2 (more reliable than choco)
+          choco install -y msys2
+          refreshenv
+          
+          # Update MSYS2 and install required packages
+          C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm"
+          C:\tools\msys64\usr\bin\bash.exe -lc "pacman -S --noconfirm mingw-w64-x86_64-pkg-config mingw-w64-x86_64-nettle mingw-w64-x86_64-clang"
+          
+          # Add MSYS2 mingw64 binaries to PATH
+          echo "C:\tools\msys64\mingw64\bin" >> $env:GITHUB_PATH
+          
+          # Set environment variables for pkg-config
+          echo "PKG_CONFIG_PATH=C:\tools\msys64\mingw64\lib\pkgconfig" >> $env:GITHUB_ENV
+          echo "PKG_CONFIG_ALLOW_SYSTEM_LIBS=1" >> $env:GITHUB_ENV
+          echo "PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1" >> $env:GITHUB_ENV
+
+          # Also install nettle via vcpkg as fallback
           git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
           C:\vcpkg\bootstrap-vcpkg.bat
           C:\vcpkg\vcpkg install nettle:x64-windows
