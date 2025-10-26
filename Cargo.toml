@@ -68,6 +68,7 @@ unicode-segmentation = "1.11.0"
 text-splitter = { version = "0.26.0", features = ["markdown", "tiktoken-rs"] }
 rsa = "0.9.8"
 sequoia-openpgp = "2.0.0"
+nettle = { version = "7.4.0", features = ["vendored"], default-features = false }
 sysinfo = { version = "0.35.2", default-features = false, features = [
     "system",
 ] }
