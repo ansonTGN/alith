@@ -91,14 +91,6 @@ jobs:
           # Add mingw64 binaries to PATH so pkg-config is on PATH for cargo build
           echo "C:\msys64\mingw64\bin" >> $env:GITHUB_PATH
 
-          # Force nettle-sys to use vendored sources instead of system libraries
-          echo "NETTLE_NO_PKG_CONFIG=1" >> $env:GITHUB_ENV
-          echo "NETTLE_VENDORED=1" >> $env:GITHUB_ENV
-          
-          # Set environment variables for system nettle (fallback)
-          echo "NETTLE_LIB_DIR=C:\msys64\mingw64\lib" >> $env:GITHUB_ENV
-          echo "NETTLE_INCLUDE_DIR=C:\msys64\mingw64\include" >> $env:GITHUB_ENV
-
           # Keep vcpkg for other deps if needed
           git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
           C:\vcpkg\bootstrap-vcpkg.bat
