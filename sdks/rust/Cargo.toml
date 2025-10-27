@@ -15,6 +15,10 @@ path = "examples/agent_groq.rs"
 name = "agent_github_errorIdentifier"
 path = "examples/agent_github_errorIdentifier.rs"
 
+[[example]]
+name = "agent_articleWriter"
+path = "examples/agent_articleWriter.rs"
+
 [dependencies]
 alith.workspace = true
 tokio.workspace = true
