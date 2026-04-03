@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 env:
-  PYTHON_VERSION: '3.12'
+  PYTHON_VERSION: '3.13'
   PYO3_USE_ABI3_FORWARD_COMPATIBILITY: 1
 
 jobs:
@@ -40,7 +40,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - uses: PyO3/maturin-action@v1.47.2
+      - uses: PyO3/maturin-action@v1
         with:
           working-directory: "sdks/python"
           command: sdist
@@ -58,16 +58,47 @@ jobs:
         target: [ x86_64, aarch64 ]
     steps:
       - uses: actions/checkout@v4
-      - uses: PyO3/maturin-action@v1.47.2
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Pre-pull manylinux image (debug/retry)
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          set -e
+          if [[ "${TARGET}" == "aarch64" ]]; then
+            ARCH_TAG="aarch64"
+          else
+            ARCH_TAG="x86_64"
+          fi
+          IMAGE="quay.io/pypa/manylinux2014_${ARCH_TAG}:latest"
+          echo "Attempting to pull $IMAGE"
+          for i in 1 2 3; do
+            if docker pull "$IMAGE"; then
+              echo "Pulled $IMAGE"
+              break
+            else
+              echo "docker pull failed (attempt $i), retrying in 10s..."
+              sleep 10
+            fi
+          done
+
+      - uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          manylinux: auto
+          manylinux: manylinux2014
           working-directory: "sdks/python"
           command: build
-          args: --release -o dist --find-interpreter
+          # Explicitly limit Python versions to those supported by PyO3 0.23.x (<=3.13)
+          # This avoids failures when the container provides Python 3.14+ interpreters.
+          args: --release -o dist -i python3.9 python3.10 python3.11 python3.12 python3.13
         env:
           # Workaround ring 0.17 build issue
           CFLAGS_aarch64_unknown_linux_gnu: "-D__ARM_ARCH=8"
+          RUST_LOG: debug
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -78,11 +109,16 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: PyO3/maturin-action@v1.47.2
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: PyO3/maturin-action@v1
         with:
           working-directory: "sdks/python"
           command: build
-          args: --release -o dist --find-interpreter
+          # Limit Python interpreters to <=3.13 to match PyO3 support
+          args: --release -o dist -i python3.9 python3.10 python3.11 python3.12 python3.13
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -93,12 +129,17 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: PyO3/maturin-action@v1.47.2
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: PyO3/maturin-action@v1
         with:
           working-directory: "sdks/python"
           command: build
           target: universal2-apple-darwin
-          args: --release -o dist --find-interpreter
+          # Limit Python interpreters to <=3.13 to match PyO3 support
+          args: --release -o dist -i python3.9 python3.10 python3.11 python3.12 python3.13
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
